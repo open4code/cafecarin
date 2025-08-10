@@ -18,6 +18,9 @@ st.markdown(
     """
 )
 
+if st.button("Send balloons!"):
+    st.balloons()
+
 st.write("""
 Ihre Carolin
 """)
