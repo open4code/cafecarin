@@ -12,9 +12,9 @@ st.markdown(
     """
     ---
     **Anleitung:**
-    1. Klicken Sie irgendeinen Button.
-    2. Wählen Sie irgendetwas aus, das sinnvoll ist.
-    3. Die CAntworten werden nicht automatisch generiert, denn das ist Deine Aufgabe.
+    1. Teste die Streamlit Features im Playground https://streamlit.io/playground
+    2. Check die möglichen Components hier: https://streamlit.io/components
+    3. Erweitere diesen Code auf Github, und teste die Änderungen auf https://caffeecarin-0815.streamlit.app
     """
 )
 
