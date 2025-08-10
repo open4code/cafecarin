@@ -13,7 +13,7 @@ st.markdown(
     ---
     **Anleitung:**
     1. Teste die Streamlit Features im Playground https://streamlit.io/playground
-    2. Check die möglichen Components hier: https://streamlit.io/components
+    2. Check die Docs mit mache dich mit den Streamlit Möglichkeiten vertraut https://docs.streamlit.io
     3. Erweitere diesen Code auf Github, und teste die Änderungen auf https://caffeecarin-0815.streamlit.app
     """
 )
