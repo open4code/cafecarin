@@ -4,8 +4,7 @@ import pandas as pd
 st.set_page_config(layout="wide")
 st.title("Interaktives Tool, um die Welt zu verbessern")
 
-# oder st.write()
-st.write_stream("""
+st.write("""
 Lasst uns gemeinsam die Welt verbessern.
 """)
 
