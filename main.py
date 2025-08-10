@@ -24,3 +24,5 @@ if st.button("Send balloons!"):
 st.write("""
 Ihre Carolin
 """)
+
+st.feedback(options="thumbs", *, key=None, disabled=False, on_change=None, args=None, kwargs=None, width="content")
