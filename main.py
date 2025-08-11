@@ -186,7 +186,6 @@ def render_step_5():
 
     # --- Die Zusammenfassung unserer App ---
     st.markdown("---")
-    st.markdown("## Deine Entscheidungs-Zusammenfassung")
     st.markdown("### 📝 Übersicht deiner Entscheidungsreise")
     st.subheader("Deine Entscheidung:")
     st.info(st.session_state.problem)
