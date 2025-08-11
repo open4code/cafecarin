@@ -85,7 +85,7 @@ def render_step_2():
     st.markdown("Wähle aus der Liste, welche Werte für diese Entscheidung relevant sind.")
     
     # Beispiel-Werte
-    all_values = ["Sicherheit", "Wachstum", "Kreativität", "Freiheit", "Stabilität", "Einfluss"]
+    all_values = ["Sicherheit", "Finanzielle Absicherung", "Wachstum und Selbstverwirklichung", "Kreativität", "Freiheit", "Stabilität", "Einfluss"]
     
     st.session_state.selected_values = st.multiselect(
         "Deine Top-Werte:",
