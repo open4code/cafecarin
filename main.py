@@ -180,26 +180,9 @@ def render_step_4():
     st.button("Zurück", on_click=next_page, args=['step_3'])
 
 
-# Funktion für Schritt 5: Zusammenfassung & erster Handlungsschritt
-def render_step_5():
-    # Dein originaler Code-Abschnitt
-    st.title("Interaktives Tool, um die Welt zu verbessern")
-    st.write("""
-    Lass uns gemeinsam deine Entscheidung vereinfachen.
-    """)
 
-    st.markdown("---")
-    st.markdown(
-    """
-    **Anleitung:**
-    1. Teste die Streamlit Features im Playground https://streamlit.io/playground
-    2. Check die Docs mit mache dich mit den Streamlit Möglichkeiten vertraut https://docs.streamlit.io
-    3. Erweitere diesen Code auf Github, und teste die Änderungen auf https://cafecarin-0815.streamlit.app
-    """
-    )
-    
-    if st.button("Send balloons!"):
-        st.balloons()
+def render_step_5():
+   
 
     # --- Die Zusammenfassung unserer App ---
     st.markdown("---")
