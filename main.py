@@ -82,10 +82,12 @@ def render_step_2():
     st.markdown("---")
     
     st.markdown("### Wähle deine wichtigsten Werte")
-    st.markdown("Wähle aus der Liste, welche Werte für diese Entscheidung relevant sind.")
+    st.markdown("""
+    Wähle aus der Liste, welche Werte für diese Entscheidung relevant sind. Die Liste orientiert sich an etablierten Modellen wie der **Bedürfnispyramide nach Maslow** oder dem **Job Demands-Resources (JDR) Modell**, um die Bandbreite menschlicher Bedürfnisse abzudecken.
+    """)
     
-    # Beispiel-Werte
-    all_values = ["Sicherheit", "Finanzielle Absicherung", "Wachstum und Selbstverwirklichung", "Kreativität", "Freiheit", "Stabilität", "Einfluss"]
+    
+    all_values = ["Sicherheit", "Finanzielle Sicherheit", "Wachstum und Selbstverwirklichung", "Kreativität", "Freiheit", "Stabilität", "Einfluss", "Autonomie", "Soziale Bindungen", "Anerkennung"]
     
     st.session_state.selected_values = st.multiselect(
         "Deine Top-Werte:",
@@ -125,8 +127,15 @@ def render_step_3():
     )
     
     st.markdown("### Reflektiere über Denkfehler")
-    st.markdown("Oft beeinflussen uns kognitive Verzerrungen. Frage dich zum Beispiel: Konzentriere ich mich mehr auf das, was ich verlieren könnte (Verlustaversion)?")
-    # Hier könntest du weitere Reflexionsfragen hinzufügen
+    st.markdown("""
+    Oft beeinflussen uns sogenannte **kognitive Verzerrungen (Denkfehler)**, also systematische Fehler im Denken, die von der menschlichen Wahrnehmung herrühren. Sie können uns davon abhalten, eine rationale Entscheidung zu treffen.
+    
+    Stelle dir die folgenden Fragen, um dich selbst zu reflektieren:
+    * **Verlustaversion:** Konzentriere ich mich mehr auf das, was ich verlieren könnte, als auf das, was ich gewinnen könnte? (Z. B. die Angst, einen sicheren Job zu verlieren, auch wenn die neue Chance mehr Wachstum verspricht.)
+    * **Bestätigungsfehler:** Suche ich aktiv nach Informationen, die meine bevorzugte Option bestätigen, und ignoriere ich Informationen, die dagegen sprechen?
+    * **Verankerungseffekt:** Hänge ich an einer ersten Information (einem ersten Angebot oder einer ersten Idee) fest, auch wenn neue, bessere Informationen verfügbar sind?
+    * **Verfügbarkeitsheuristik:** Treffe ich meine Entscheidung auf Basis von Informationen, die mir leicht in den Sinn kommen (z. B. eine aktuelle Schlagzeile), statt alle relevanten Informationen zu berücksichtigen?
+    """)
     
     if st.button("Weiter zur Pro & Contra Simulation"):
         next_page('step_4')
@@ -174,9 +183,9 @@ def render_step_4():
 # Funktion für Schritt 5: Zusammenfassung & erster Handlungsschritt
 def render_step_5():
     # Dein originaler Code-Abschnitt
-    st.title("Interaktives Tool mit CafeCarin, um die Welt zu verbessern")
+    st.title("Interaktives Tool, um die Welt zu verbessern")
     st.write("""
-    Lasst uns gemeinsam die Welt verbessern.
+    Lass uns gemeinsam deine Entscheidung vereinfachen.
     """)
 
     st.markdown("---")
@@ -243,9 +252,16 @@ def render_step_5():
 
 
     st.markdown("### Was ist jetzt dein erster Schritt?")
-    st.markdown("Formuliere einen kleinen, konkreten Schritt, den du sofort umsetzen kannst (SMART-Ziel).")
+    st.markdown("""
+    Formuliere einen kleinen, konkreten Schritt, den du sofort umsetzen kannst. Ein guter Ansatz hierfür ist die **SMART-Methode**:
+    * **S - Spezifisch:** Was genau möchtest du tun? Wer ist beteiligt? Wo findet es statt?
+    * **M - Messbar:** Woran erkennst du, dass du dein Ziel erreicht hast? (Z. B. "Ich habe 3 Angebote eingeholt.")
+    * **A - Attraktiv:** Ist der Schritt für dich motivierend und lohnenswert?
+    * **R - Realistisch:** Ist der Schritt machbar und passt er zu deinen Ressourcen (Zeit, Geld, Fähigkeiten)?
+    * **T - Terminiert:** Bis wann möchtest du diesen Schritt abgeschlossen haben?
+    """)
     st.session_state.first_step = st.text_input(
-        "Dein erster konkreter Schritt:",
+        "Dein erster konkreter SMART-Schritt:",
         value=st.session_state.first_step
     )
     
