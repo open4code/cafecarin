@@ -185,7 +185,7 @@ def render_start_page():
     )
     st.button("Starte deine Entscheidungsreise", on_click=next_page, args=['step_1'])
     # Verwendet ein Standard-Placeholder-Bild, das immer funktioniert
-    st.image("https://placehold.co/1200x400/FFF8E1/E2B060?text=Ein+interaktives+Tool+von+CafeCarin")
+    st.image("https://placehold.co/1200x400/FFF8E1/E2B060?text=Ein+interaktives+Tool+für+Entscheidungen")
 
 # Schritt 1: Problem und Optionen definieren
 def render_step_1():
@@ -366,14 +366,6 @@ def render_step_5():
 
 # Schritt 6: Zusammenfassung & erster Handlungsschritt
 def render_step_6():
-    # Dein originaler Code-Abschnitt
-    st.title("Interaktives Tool mit CafeCarin, um die Welt zu verbessern")
-    st.write("""
-    Lasst uns gemeinsam die Welt verbessern.
-    """)
-  
-
-
     # --- Die Zusammenfassung unserer App ---
     st.markdown("---")
     st.markdown("## 🎉 Deine Entscheidungs-Zusammenfassung")
@@ -441,15 +433,7 @@ def render_step_6():
     
     if st.button("Entscheidung abschließen"):
         st.success("🎉 Deine Entscheidungsreise wurde abgeschlossen!")
-        st.balloons()
-        st.write("Ihre Carolin")
         
-        # Originaler Feedback-Abschnitt
-        sentiment_mapping = ["one", "two", "three", "four", "five"]
-        selected = st.feedback("stars")
-        if selected is not None:
-            st.markdown(f"You selected {sentiment_mapping[selected]} star(s).")
-    
     if st.button("Neue Entscheidungsreise starten", on_click=next_page, args=['start']):
         # Zurück zum Start und alle Variablen zurücksetzen
         st.session_state.clear()
