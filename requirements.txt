@@ -133,7 +133,7 @@ def next_page(page_name):
 # --- 3. DYNAMISCHE INHALTE FÜR JEDE KATEGORIE ---
 category_content = {
     "Karriere & Beruf": {
-        "values": ["Sicherheit", "Finanzielle Sicherheit", "Wachstum und Selbstverwirklichung", "Kreativität", "Freiheit", "Stabilität", "Einfluss", "Autonomie", "Soziale Bindungen", "Anerkennung"],
+        "values": ["Finanzielle Sicherheit", "Wachstum", "Autonomie", "Einfluss", "Anerkennung", "Work-Life-Balance"],
         "cognitive_biases": {
             "title": "Häufige Denkfehler in der Karriere",
             "biases": [
@@ -371,19 +371,8 @@ def render_step_6():
     st.write("""
     Lasst uns gemeinsam die Welt verbessern.
     """)
+  
 
-    st.markdown("---")
-    st.markdown(
-    """
-    **Anleitung:**
-    1. Teste die Streamlit Features im Playground https://streamlit.io/playground
-    2. Check die Docs mit mache dich mit den Streamlit Möglichkeiten vertraut https://docs.streamlit.io
-    3. Erweitere diesen Code auf Github, und teste die Änderungen auf https://cafecarin-0815.streamlit.app
-    """
-    )
-    
-    if st.button("Send balloons!"):
-        st.balloons()
 
     # --- Die Zusammenfassung unserer App ---
     st.markdown("---")
