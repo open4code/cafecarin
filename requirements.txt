@@ -97,8 +97,7 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # --- 2. ZUSTAND DER APP VERWALTEN (SESSION STATE) ---
 # Initialisiert alle Variablen im Session State, wenn sie nicht existieren
 def init_session_state():
-    if 'page' not in st.session_state:
-        st.session_state.page = 'start'
+    if 'page' not in st.session_state: st.session_state.page = 'start'
     if 'problem' not in st.session_state: st.session_state.problem = ""
     if 'problem_category' not in st.session_state: st.session_state.problem_category = "Wähle eine Kategorie"
     if 'options' not in st.session_state: st.session_state.options = ["", ""]
@@ -123,7 +122,6 @@ def next_page(page_name):
 def reset_app():
     st.session_state.clear()
     init_session_state()
-    st.session_state.page = 'start'
 
 # --- 3. DYNAMISCHE INHALTE FÜR JEDE KATEGORIE ---
 category_content = {
@@ -190,10 +188,18 @@ def render_step_1():
     
     st.markdown("### 📚 Wähle eine Problemkategorie")
     st.markdown("Die Kategorie hilft uns, die passenden psychologischen Modelle für deine Situation auszuwählen.")
+    
+    # Sicherere Methode zur Initialisierung des selectbox-Index
+    options = ["Wähle eine Kategorie"] + list(category_content.keys())
+    try:
+        current_index = options.index(st.session_state.problem_category)
+    except ValueError:
+        current_index = 0
+
     st.session_state.problem_category = st.selectbox(
         "Kategorie:",
-        options=["Wähle eine Kategorie"] + list(category_content.keys()),
-        index=["Wähle eine Kategorie"] + list(category_content.keys()).index(st.session_state.problem_category) + 1 if st.session_state.problem_category in category_content else 0
+        options=options,
+        index=current_index
     )
 
     st.markdown("### ➡️ Nenne deine Optionen")
