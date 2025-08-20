@@ -411,7 +411,7 @@ def render_step_5():
                 #st.altair_chart(chart, use_container_width=True)
                 #trying to make chart narrower
                 #cols = st.columns([1, 1, 1, 1, 1, 1, 1])
-                cols = st.columns([2, 2, 2, 2, 2, 2, 2],width=1600)
+                cols = st.columns([2, 2, 2, 2, 2, 2, 2],width=3000)
                 with cols[0]:
                     st.altair_chart(chart, use_container_width=True)                
                 
