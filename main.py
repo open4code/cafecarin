@@ -240,39 +240,39 @@ def render_step_1():
     if st.button("Weiter", disabled=not is_valid):
         next_page('step_2')
 
-# Funktion für Schritt 2: Werte- und Motivationsanalyse
 def render_step_2():
-    st.title("Schritt 2: Deine Werte & Motivation")
-    st.markdown("---")
+    st.title("Step 2: Werte & Motivation")
+    selected_category = st.session_state.problem_category
+    all_values = category_content.get(selected_category, {}).get("values", ["Sicherheit", "Freiheit", "Entwicklung"])
     
-    st.markdown("### Wähle deine wichtigsten Werte")
-    st.markdown("""
-    Wähle aus der Liste, welche Werte für diese Entscheidung relevant sind. Die Liste orientiert sich an etablierten Modellen wie der **Bedürfnispyramide nach Maslow** oder dem **Job Demands-Resources (JDR) Modell**, um die Bandbreite menschlicher Bedürfnisse abzudecken.
-    """)
+    with st.container():
+        st.markdown(f"#### Psychologische Werte")
+        st.markdown("Wähle alle Werte aus, die für deine Entscheidung in der Kategorie **'{selected_category}'** relevant sind.")
+        
+        selected_values_list = []
+        for value in all_values:
+            if st.checkbox(value, value=(value in st.session_state.selected_values), key=f"checkbox_{value}"):
+                selected_values_list.append(value)
+        st.session_state.selected_values = selected_values_list
     
-    
-    all_values = ["Sicherheit", "Finanzielle Sicherheit", "Wachstum und Selbstverwirklichung", "Kreativität", "Freiheit", "Stabilität", "Einfluss", "Autonomie", "Soziale Bindungen", "Anerkennung"]
-    
-    st.session_state.selected_values = st.multiselect(
-        "Deine Top-Werte:",
-        options=all_values,
-        default=st.session_state.selected_values
-    )
-    
-    # Hier werden die Schieberegler für jeden gewählten Wert erstellt
     if st.session_state.selected_values:
-        st.markdown("### Bewerte deine Optionen nach diesen Werten")
-        st.markdown("Bewerte, wie gut jede Option deine Werte erfüllt (1 = schlecht, 10 = sehr gut).")
-        for value in st.session_state.selected_values:
-            st.session_state.values_rating[f"{value}_A"] = st.slider(
-                f"Wie gut erfüllt '{st.session_state.options[0]}' den Wert '{value}'?", 
-                0, 10, st.session_state.values_rating.get(f"{value}_A", 5), key=f"slider_a_{value}"
-            )
-            st.session_state.values_rating[f"{value}_B"] = st.slider(
-                f"Wie gut erfüllt '{st.session_state.options[1]}' den Wert '{value}'?", 
-                0, 10, st.session_state.values_rating.get(f"{value}_B", 5), key=f"slider_b_{value}"
-            )
-            st.markdown("---")
+        with st.container():
+            st.markdown("#### Werte-Bewertung (Deine Entscheidungsmatrix)")
+            st.markdown("Bewerte auf einer Skala von 1 bis 10, wie gut jede Option deine gewählten Werte erfüllt.")
+            st.markdown("Die Punktzahl, die du hier vergibst, **gewichtet** automatisch die Wichtigkeit der Werte für deine endgültige Entscheidung.")
+            for value in st.session_state.selected_values:
+                st.subheader(f"Wert: {value}")
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    st.session_state.values_rating[f"{value}_A"] = st.slider(
+                        f"{st.session_state.options[0]}",
+                        0, 10, st.session_state.values_rating.get(f"{value}_A", 5), key=f"slider_a_{value}"
+                    )
+                with col_b:
+                    st.session_state.values_rating[f"{value}_B"] = st.slider(
+                        f"{st.session_state.options[1]}",
+                        0, 10, st.session_state.values_rating.get(f"{value}_B", 5), key=f"slider_b_{value}"
+                    )
 
     if st.button("Weiter"):
         next_page('step_3')
