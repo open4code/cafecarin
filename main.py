@@ -249,6 +249,7 @@ def render_step_2():
         st.markdown(f"#### Psychologische Werte")
         st.markdown("Wähle alle Werte, die für deine Entscheidung in der Kategorie **'{selected_category}'** relevant sind.")
         
+        # Änderung: Statt selectbox nun Checkboxen für Mehrfachauswahl
         selected_values_list = []
         for value in all_values:
             if st.checkbox(value, value=(value in st.session_state.selected_values), key=f"checkbox_{value}"):
