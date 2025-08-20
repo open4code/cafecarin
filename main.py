@@ -3,7 +3,7 @@ import altair as alt
 import pandas as pd
 import json
 
-# --- 1. SEITENKONFIGURATION & STYLING (Vollständig überarbeitet) ---
+# --- 1. SEITENKONFIGURATION & STYLING ---
 st.set_page_config(
     page_title="Decision Navigator",
     layout="wide",
@@ -248,12 +248,12 @@ def render_step_2():
     with st.container():
         st.markdown(f"#### Psychologische Werte")
         st.markdown("Wähle alle Werte, die für deine Entscheidung in der Kategorie **'{selected_category}'** relevant sind.")
-        st.session_state.selected_values = st.multiselect(
-            "Deine Top-Werte:",
-            options=all_values,
-            default=st.session_state.selected_values,
-            help="Du kannst mehrere Werte auswählen, die dir wichtig sind."
-        )
+        
+        selected_values_list = []
+        for value in all_values:
+            if st.checkbox(value, value=(value in st.session_state.selected_values), key=f"checkbox_{value}"):
+                selected_values_list.append(value)
+        st.session_state.selected_values = selected_values_list
     
     if st.session_state.selected_values:
         with st.container():
@@ -279,8 +279,9 @@ def render_step_2():
 def render_step_3():
     st.title("Step 3: Emotionen & Denkfehler")
     with st.container():
-        st.markdown("#### Dein Bauchgefühl")
-        st.markdown("Schreibe auf, welche Gefühle und intuitiven Gedanken du zu den Optionen hast.")
+        # Der Rote Hut
+        st.markdown("#### Dein Bauchgefühl (Der 'Rote Hut' von Edward de Bono)")
+        st.markdown("Schreibe auf, welche Gefühle und intuitiven Gedanken du zu den Optionen hast. Es geht nicht um Logik, sondern um Emotionen.")
         st.session_state.emotions = st.text_area("Deine Gedanken:", value=st.session_state.emotions, height=150)
     
     selected_content = category_content.get(st.session_state.problem_category, {})
@@ -299,39 +300,34 @@ def render_step_3():
 def render_step_4():
     st.title("Step 4: Pro/Contra & Zukunft")
     
-    # Pro und Contra Felder für Option A
+    # Der Gelbe und Schwarze Hut
     with st.container():
-        st.markdown(f"#### Pro-Liste für '{st.session_state.options[0]}'")
+        st.markdown(f"#### Vorteile (Der 'Gelbe Hut' von Edward de Bono)")
         st.session_state.pro_a = st.text_area(
-            "Was spricht für diese Option?",
+            f"Was spricht für Option A: '{st.session_state.options[0]}'?",
             value=st.session_state.pro_a,
             key="pro_a_area", height=150
         )
-    with st.container():
-        st.markdown(f"#### Contra-Liste für '{st.session_state.options[0]}'")
-        st.session_state.contra_a = st.text_area(
-            "Was spricht gegen diese Option?",
-            value=st.session_state.contra_a,
-            key="contra_a_area", height=150
-        )
-    
-    # Pro und Contra Felder für Option B
-    with st.container():
-        st.markdown(f"#### Pro-Liste für '{st.session_state.options[1]}'")
         st.session_state.pro_b = st.text_area(
-            "Was spricht für diese Option?",
+            f"Was spricht für Option B: '{st.session_state.options[1]}'?",
             value=st.session_state.pro_b,
             key="pro_b_area", height=150
         )
+    
     with st.container():
-        st.markdown(f"#### Contra-Liste für '{st.session_state.options[1]}'")
+        st.markdown(f"#### Nachteile (Der 'Schwarze Hut' von Edward de Bono)")
+        st.session_state.contra_a = st.text_area(
+            f"Was spricht gegen Option A: '{st.session_state.options[0]}'?",
+            value=st.session_state.contra_a,
+            key="contra_a_area", height=150
+        )
         st.session_state.contra_b = st.text_area(
-            "Was spricht gegen diese Option?",
+            f"Was spricht gegen Option B: '{st.session_state.options[1]}'?",
             value=st.session_state.contra_b,
             key="contra_b_area", height=150
         )
         
-    # Neues Feld für kreative Optionen (nach dem Grünen Hut)
+    # Der Grüne Hut
     with st.container():
         st.markdown("#### Kreative Optionen (Der 'Grüne Hut' von Edward de Bono)")
         st.markdown("Gibt es noch andere, unkonventionelle Optionen, die du bisher nicht in Betracht gezogen hast? Schreibe sie hier auf.")
@@ -341,19 +337,17 @@ def render_step_4():
             key="creative_options_area", height=150
         )
 
-    # Zukunftsszenarien (unverändert)
+    # Regret Minimization Framework
     with st.container():
-        st.markdown(f"#### Zukunftsszenario für '{st.session_state.options[0]}'")
+        st.markdown(f"#### Zukunftsszenario (nach Jeff Bezos)")
+        st.markdown("Stelle dir vor, du bist 80 Jahre alt. Welche Entscheidung würdest du am meisten bereuen? Das Regret Minimization Framework hilft dir, aus einer langfristigen Perspektive zu entscheiden.")
         st.session_state.future_scenario_a = st.text_area(
-            "Wie sieht dein Leben in 1, 3 und 5 Jahren aus?",
+            f"Wie sieht dein Leben in 1, 3 und 5 Jahren aus, wenn du dich für Option A entscheidest?",
             value=st.session_state.future_scenario_a,
             key="scenario_a", height=200
         )
-    
-    with st.container():
-        st.markdown(f"#### Zukunftsszenario für '{st.session_state.options[1]}'")
         st.session_state.future_scenario_b = st.text_area(
-            "Wie sieht dein Leben in 1, 3 und 5 Jahren aus?",
+            f"Wie sieht dein Leben in 1, 3 und 5 Jahren aus, wenn du dich für Option B entscheidest?",
             value=st.session_state.future_scenario_b,
             key="scenario_b", height=200
         )
@@ -413,13 +407,13 @@ def render_step_5():
 
     with st.container():
         st.markdown("#### Deine Gedanken & Szenarien:")
-        st.write(f"**Pro für {st.session_state.options[0]}:**")
+        st.write(f"**Vorteile für {st.session_state.options[0]}:**")
         st.write(st.session_state.pro_a)
-        st.write(f"**Contra für {st.session_state.options[0]}:**")
+        st.write(f"**Nachteile für {st.session_state.options[0]}:**")
         st.write(st.session_state.contra_a)
-        st.write(f"**Pro für {st.session_state.options[1]}:**")
+        st.write(f"**Vorteile für {st.session_state.options[1]}:**")
         st.write(st.session_state.pro_b)
-        st.write(f"**Contra für {st.session_state.options[1]}:**")
+        st.write(f"**Nachteile für {st.session_state.options[1]}:**")
         st.write(st.session_state.contra_b)
         st.write(f"**Zukunftsszenario {st.session_state.options[0]}:**")
         st.write(st.session_state.future_scenario_a)
@@ -431,9 +425,9 @@ def render_step_5():
             st.write(st.session_state.creative_options)
     
     with st.container():
-        st.markdown("#### Dein erster konkreter Schritt (SMART-Ziele)")
+        st.markdown("#### Dein erster konkreter Schritt (Der 'Blaue Hut' & SMART-Ziele)")
         st.markdown("""
-        Um deinen ersten Schritt umsetzbar zu machen, nutze die **SMART-Methode**:
+        Dieser Hut hilft dir, den Prozess zu planen. Um deinen ersten Schritt umsetzbar zu machen, nutze die **SMART-Methode**:
         - **S**pezifisch: Was genau willst du tun?
         - **M**essbar: Woran erkennst du, dass du dein Ziel erreicht hast?
         - **A**ttraktiv: Warum ist dir das Ziel wichtig?
