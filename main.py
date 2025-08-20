@@ -249,13 +249,16 @@ def render_step_2():
         st.markdown(f"#### Psychologische Werte")
         st.markdown("Wähle alle Werte aus, die für deine Entscheidung in der Kategorie **'{selected_category}'** relevant sind.")
         
-        # Änderung: `st.checkbox` wurde durch `st.multiselect` ersetzt
-        st.session_state.selected_values = st.multiselect(
-            "Relevante Werte auswählen:",
-            options=all_values,
-            default=st.session_state.selected_values
-        )
-    
+        # NEUE Implementierung mit Checkboxen in Spalten
+        selected_values = []
+        cols = st.columns(3) # Erstellt 3 Spalten
+        for i, value in enumerate(all_values):
+            col = cols[i % 3] # Verteilt die Checkboxen auf die Spalten
+            if col.checkbox(value, key=f"checkbox_{value}"):
+                selected_values.append(value)
+        
+        st.session_state.selected_values = selected_values
+
     # Die Schieberegler werden erst dann angezeigt, wenn Werte ausgewählt wurden.
     if st.session_state.selected_values:
         with st.container():
