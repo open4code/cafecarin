@@ -137,11 +137,12 @@ def init_session_state():
     if 'selected_values' not in st.session_state: st.session_state.selected_values = []
     if 'values_rating' not in st.session_state: st.session_state.values_rating = {}
     if 'emotions' not in st.session_state: st.session_state.emotions = ""
-    # Neue, separate Pro- und Contra-Felder
     if 'pro_a' not in st.session_state: st.session_state.pro_a = ""
     if 'contra_a' not in st.session_state: st.session_state.contra_a = ""
     if 'pro_b' not in st.session_state: st.session_state.pro_b = ""
     if 'contra_b' not in st.session_state: st.session_state.contra_b = ""
+    # Neues Feld für kreative Optionen
+    if 'creative_options' not in st.session_state: st.session_state.creative_options = ""
     if 'future_scenario_a' not in st.session_state: st.session_state.future_scenario_a = ""
     if 'future_scenario_b' not in st.session_state: st.session_state.future_scenario_b = ""
     if 'first_step' not in st.session_state: st.session_state.first_step = ""
@@ -250,7 +251,8 @@ def render_step_2():
         st.session_state.selected_values = st.multiselect(
             "Deine Top-Werte:",
             options=all_values,
-            default=st.session_state.selected_values
+            default=st.session_state.selected_values,
+            help="Du kannst mehrere Werte auswählen, die dir wichtig sind."
         )
     
     if st.session_state.selected_values:
@@ -292,7 +294,7 @@ def render_step_3():
                     st.markdown(bias_question)
 
     if st.button("Weiter"):
-        next_page('step_4') # Gehe zum neuen Schritt 4 (ehemals Schritt 5)
+        next_page('step_4')
 
 def render_step_4():
     st.title("Step 4: Pro/Contra & Zukunft")
@@ -328,6 +330,16 @@ def render_step_4():
             value=st.session_state.contra_b,
             key="contra_b_area", height=150
         )
+        
+    # Neues Feld für kreative Optionen (nach dem Grünen Hut)
+    with st.container():
+        st.markdown("#### Kreative Optionen (Der 'Grüne Hut' von Edward de Bono)")
+        st.markdown("Gibt es noch andere, unkonventionelle Optionen, die du bisher nicht in Betracht gezogen hast? Schreibe sie hier auf.")
+        st.session_state.creative_options = st.text_area(
+            "Andere Ideen:",
+            value=st.session_state.creative_options,
+            key="creative_options_area", height=150
+        )
 
     # Zukunftsszenarien (unverändert)
     with st.container():
@@ -347,7 +359,7 @@ def render_step_4():
         )
 
     if st.button("Weiter"):
-        next_page('step_5') # Gehe zur neuen finalen Seite
+        next_page('step_5')
 
 def render_step_5():
     st.title("Step 5: Zusammenfassung")
@@ -362,18 +374,24 @@ def render_step_5():
 
     if st.session_state.selected_values:
         with st.container():
-            st.markdown("#### Werte-Bewertung:")
+            st.markdown("#### Quantitative Auswertung (nach Werten):")
             data = []
+            score_a = 0
+            score_b = 0
             for value in st.session_state.selected_values:
+                rating_a = st.session_state.values_rating.get(f"{value}_A", 0)
+                rating_b = st.session_state.values_rating.get(f"{value}_B", 0)
+                score_a += rating_a
+                score_b += rating_b
                 data.append({
                     "value": value,
                     "option": st.session_state.options[0],
-                    "rating": st.session_state.values_rating.get(f"{value}_A", 0)
+                    "rating": rating_a
                 })
                 data.append({
                     "value": value,
                     "option": st.session_state.options[1],
-                    "rating": st.session_state.values_rating.get(f"{value}_B", 0)
+                    "rating": rating_b
                 })
             
             df = pd.DataFrame(data)
@@ -387,6 +405,11 @@ def render_step_5():
                     title="Werte-Bewertung im Vergleich"
                 )
                 st.altair_chart(chart, use_container_width=True)
+                
+                # Anzeige der Gesamtpunktzahl
+                st.write(f"**Gesamtpunktzahl Option A:** {score_a}")
+                st.write(f"**Gesamtpunktzahl Option B:** {score_b}")
+
 
     with st.container():
         st.markdown("#### Deine Gedanken & Szenarien:")
@@ -402,6 +425,10 @@ def render_step_5():
         st.write(st.session_state.future_scenario_a)
         st.write(f"**Zukunftsszenario {st.session_state.options[1]}:**")
         st.write(st.session_state.future_scenario_b)
+
+        if st.session_state.creative_options:
+            st.markdown("#### Weitere Ideen (Der 'Grüne Hut')")
+            st.write(st.session_state.creative_options)
     
     with st.container():
         st.markdown("#### Dein erster konkreter Schritt (SMART-Ziele)")
