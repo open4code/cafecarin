@@ -23,6 +23,16 @@ custom_css = """
         --border-radius: 16px;
     }
 
+    /* Farbpalette für den Dunklen Modus */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --primary-color: #F8D8C9;
+            --secondary-color: #4A4A4A;
+            --background-color: #212121;
+            --text-color: #E0E0E0;
+            --container-bg: #2E2E2E;
+        }
+    }
     body {
         background-color: var(--background-color);
         color: var(--text-color);
