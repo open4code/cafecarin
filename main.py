@@ -249,12 +249,15 @@ def render_step_2():
         st.markdown(f"#### Psychologische Werte")
         st.markdown("Wähle alle Werte aus, die für deine Entscheidung in der Kategorie **'{selected_category}'** relevant sind.")
         
+        # --- DIESER ABSCHNITT WURDE FÜR MEHRFACHAUSWAHL GEÄNDERT ---
+        # Statt einer einfachen Box werden jetzt Kontrollkästchen verwendet.
         selected_values_list = []
         for value in all_values:
             if st.checkbox(value, value=(value in st.session_state.selected_values), key=f"checkbox_{value}"):
                 selected_values_list.append(value)
         st.session_state.selected_values = selected_values_list
     
+    # --- Die Schieberegler werden jetzt nur angezeigt, wenn Werte ausgewählt wurden ---
     if st.session_state.selected_values:
         with st.container():
             st.markdown("#### Werte-Bewertung (Deine Entscheidungsmatrix)")
