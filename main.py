@@ -408,7 +408,11 @@ def render_step_5():
                 ).properties(
                     title="Werte-Bewertung im Vergleich"
                 )
-                st.altair_chart(chart, use_container_width=True)
+                #st.altair_chart(chart, use_container_width=True)
+                #trying to make chart narrower
+                cols = st.columns([1, 1, 1, 1, 1, 1, 1])
+                with cols[0]:
+                    st.altair_chart(chart, use_container_width=True)                
                 
                 # Anzeige der Gesamtpunktzahl
                 st.write(f"**Gesamtpunktzahl Option A:** {score_a}")
