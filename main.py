@@ -134,6 +134,7 @@ def init_session_state():
     if 'problem' not in st.session_state: st.session_state.problem = ""
     if 'problem_category' not in st.session_state: st.session_state.problem_category = "Wähle eine Kategorie"
     if 'options' not in st.session_state: st.session_state.options = ["", ""]
+    # Die Liste der ausgewählten Werte muss beim initialen Laden leer sein
     if 'selected_values' not in st.session_state: st.session_state.selected_values = []
     if 'values_rating' not in st.session_state: st.session_state.values_rating = {}
     if 'emotions' not in st.session_state: st.session_state.emotions = ""
@@ -249,14 +250,15 @@ def render_step_2():
         st.markdown(f"#### Psychologische Werte")
         st.markdown("Wähle alle Werte aus, die für deine Entscheidung in der Kategorie **'{selected_category}'** relevant sind.")
         
-        # Korrigierte Implementierung mit st.multiselect
-        st.session_state.selected_values = st.multiselect(
-            "Relevante Werte auswählen:",
-            options=all_values,
-            default=st.session_state.selected_values
-        )
+        # Leere die Liste der ausgewählten Werte, bevor die Checkboxen gerendert werden, um den Zustand korrekt zu aktualisieren
+        st.session_state.selected_values = []
+        cols = st.columns(3) # Erstellt 3 Spalten für die Kontrollkästchen
+        for i, value in enumerate(all_values):
+            col = cols[i % 3] # Verteilt die Checkboxen auf die Spalten
+            if col.checkbox(value, key=f"checkbox_{value}"):
+                st.session_state.selected_values.append(value)
 
-    # Die Schieberegler werden erst dann angezeigt, wenn Werte ausgewählt wurden.
+    # Die Schieberegler werden nur angezeigt, wenn Werte ausgewählt wurden
     if st.session_state.selected_values:
         with st.container():
             st.markdown("#### Werte-Bewertung (Deine Entscheidungsmatrix)")
@@ -267,17 +269,21 @@ def render_step_2():
                 col_a, col_b = st.columns(2)
                 with col_a:
                     st.session_state.values_rating[f"{value}_A"] = st.slider(
-                        f"{st.session_state.options[0]}",
+                        f"Option A: {st.session_state.options[0]}",
                         0, 10, st.session_state.values_rating.get(f"{value}_A", 5), key=f"slider_a_{value}"
                     )
                 with col_b:
                     st.session_state.values_rating[f"{value}_B"] = st.slider(
-                        f"{st.session_state.options[1]}",
+                        f"Option B: {st.session_state.options[1]}",
                         0, 10, st.session_state.values_rating.get(f"{value}_B", 5), key=f"slider_b_{value}"
                     )
 
     if st.button("Weiter"):
-        next_page('step_3')
+        # Führe eine abschließende Überprüfung durch
+        if not st.session_state.selected_values:
+            st.warning("Bitte wähle mindestens einen Wert aus, bevor du fortfährst.")
+        else:
+            next_page('step_3')
     
 def render_step_3():
     st.title("Step 3: Emotionen & Denkfehler")
