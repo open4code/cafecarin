@@ -33,7 +33,8 @@ custom_css = """
     }
 
     /* Styling für alle Container und Expander (die "Karten") */
-    div.st-emotion-cache-1r6y9j9, div.st-emotion-cache-1n1p067 {
+    div[data-testid="stVerticalBlock"] > div.st-emotion-cache-1r6y9j9,
+    div[data-testid="stVerticalBlock"] > div.st-emotion-cache-1n1p067 {
         background-color: var(--container-bg);
         border-radius: var(--border-radius);
         padding: 20px;
@@ -70,16 +71,12 @@ custom_css = """
     }
 
     /* Spezielles Styling für Textbereiche und Eingabefelder (Farbhintergrund) */
-    .st-emotion-cache-13gs647, .st-emotion-cache-1cpx9g8, .st-emotion-cache-13v2p5x {
+    .st-emotion-cache-13gs647, .st-emotion-cache-1cpx9g8, .st-emotion-cache-13v2p5x, .st-emotion-cache-1l006n6 {
         background-color: var(--secondary-color) !important;
         color: var(--text-color);
         border-radius: 12px;
         border: none;
         padding: 10px;
-    }
-    .st-emotion-cache-1l006n6 {
-        background-color: var(--secondary-color) !important;
-        border-radius: 12px;
     }
 
     /* Styling für Schieberegler (Slider) */
@@ -199,30 +196,22 @@ category_content = {
 def render_start_page():
     # Haupt-Container für die Startseite
     with st.container():
-        st.title("Start Your Decision Journey")
-        st.image("https://placehold.co/1200x400/FFF8E1/E2B060?text=Decision+Navigator")
+        st.title("Decision Navigator")
+        st.image("https://placehold.co/1200x400/FFF8E1/E2B060?text=Deine+Entscheidungsreise")
         st.markdown("Starte deine persönliche Entscheidungsreise. Lass uns deine Gedanken und Gefühle strukturieren, damit du die beste Entscheidung für dich treffen kannst.")
         st.button("Starten", on_click=next_page, args=['step_1'])
 
 def render_step_1():
     st.title("Step 1: Dein Problem & deine Optionen")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        with st.container():
-            st.markdown("#### Optionen")
-            st.session_state.options[0] = st.text_area("Option A:", value=st.session_state.options[0], height=100, key="option_a_input")
-    with col2:
-        with st.container():
-            st.markdown("#### Optionen")
-            st.session_state.options[1] = st.text_area("Option B:", value=st.session_state.options[1], height=100, key="option_b_input")
-
+    # 1. Container für Problem und Kategorie (jetzt an erster Stelle)
     with st.container():
         st.markdown("#### Problem und Kategorie")
         st.session_state.problem = st.text_area(
             "Was ist die Entscheidung, die dich beschäftigt?",
             value=st.session_state.problem,
-            key="problem_input"
+            key="problem_input",
+            height=100
         )
         
         options = ["Wähle eine Kategorie"] + list(category_content.keys())
@@ -235,6 +224,15 @@ def render_step_1():
             options=options,
             index=current_index
         )
+    
+    # 2. Container für die Optionen
+    with st.container():
+        st.markdown("#### Optionen")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.session_state.options[0] = st.text_area("Option A:", value=st.session_state.options[0], height=100, key="option_a_input")
+        with col2:
+            st.session_state.options[1] = st.text_area("Option B:", value=st.session_state.options[1], height=100, key="option_b_input")
     
     is_valid = all([st.session_state.problem, st.session_state.options[0], st.session_state.options[1], st.session_state.problem_category != "Wähle eine Kategorie"])
     if st.button("Weiter", disabled=not is_valid):
@@ -316,35 +314,36 @@ def render_step_4():
 def render_step_5():
     st.title("Step 5: Pro/Contra & Zukunft")
     
-    col_a, col_b = st.columns(2)
-    with col_a:
-        with st.container():
-            st.markdown(f"#### Pro- & Contra-Liste für '{st.session_state.options[0]}'")
-            st.session_state.pro_contra_a = st.text_area(
-                "Liste deine Gedanken auf:",
-                value=st.session_state.pro_contra_a,
-                key="pro_contra_a_area", height=150
-            )
-            st.markdown(f"#### Zukunftsszenario für '{st.session_state.options[0]}'")
-            st.session_state.future_scenario_a = st.text_area(
-                "Wie sieht dein Leben in 1, 3 und 5 Jahren aus?",
-                value=st.session_state.future_scenario_a,
-                key="scenario_a", height=200
-            )
-    with col_b:
-        with st.container():
-            st.markdown(f"#### Pro- & Contra-Liste für '{st.session_state.options[1]}'")
-            st.session_state.pro_contra_b = st.text_area(
-                "Liste deine Gedanken auf:",
-                value=st.session_state.pro_contra_b,
-                key="pro_contra_b_area", height=150
-            )
-            st.markdown(f"#### Zukunftsszenario für '{st.session_state.options[1]}'")
-            st.session_state.future_scenario_b = st.text_area(
-                "Wie sieht dein Leben in 1, 3 und 5 Jahren aus?",
-                value=st.session_state.future_scenario_b,
-                key="scenario_b", height=200
-            )
+    with st.container():
+        st.markdown(f"#### Pro- & Contra-Liste für '{st.session_state.options[0]}'")
+        st.session_state.pro_contra_a = st.text_area(
+            "Liste deine Gedanken auf:",
+            value=st.session_state.pro_contra_a,
+            key="pro_contra_a_area", height=150
+        )
+    with st.container():
+        st.markdown(f"#### Pro- & Contra-Liste für '{st.session_state.options[1]}'")
+        st.session_state.pro_contra_b = st.text_area(
+            "Liste deine Gedanken auf:",
+            value=st.session_state.pro_contra_b,
+            key="pro_contra_b_area", height=150
+        )
+    
+    with st.container():
+        st.markdown(f"#### Zukunftsszenario für '{st.session_state.options[0]}'")
+        st.session_state.future_scenario_a = st.text_area(
+            "Wie sieht dein Leben in 1, 3 und 5 Jahren aus?",
+            value=st.session_state.future_scenario_a,
+            key="scenario_a", height=200
+        )
+    
+    with st.container():
+        st.markdown(f"#### Zukunftsszenario für '{st.session_state.options[1]}'")
+        st.session_state.future_scenario_b = st.text_area(
+            "Wie sieht dein Leben in 1, 3 und 5 Jahren aus?",
+            value=st.session_state.future_scenario_b,
+            key="scenario_b", height=200
+        )
 
     if st.button("Weiter"):
         next_page('step_6')
@@ -426,11 +425,7 @@ def render_bottom_nav():
     </div>
     """
     st.markdown(nav_html, unsafe_allow_html=True)
-    # The links here use URL parameters to change the state, which is a trick for navigation
-    # This also allows the navigation to work without refreshing the page
-    # It's a robust way to handle state changes in a single-page app
 
-# --- 5. DIE HAUPTLOGIK DER APP ---
 def main():
     query_params = st.query_params
     if 'page' in query_params:
@@ -451,7 +446,6 @@ def main():
     elif st.session_state.page == 'step_6':
         render_step_6()
     
-    # Render the bottom navigation bar on all pages except the start page
     if st.session_state.page != 'start':
         render_bottom_nav()
 
