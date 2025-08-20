@@ -15,9 +15,9 @@ st.set_page_config(
 custom_css = """
 <style>
     :root {
-        --primary-color: #E2B060;   /* Ein helles Orange/Beige für Buttons */
-        --secondary-color: #F8D8C9; /* Ein leichtes Rosé als Akzent */
-        --background-color: #FFF8E1; /* Ein helles Beige für den Hintergrund */
+        --primary-color: #E2B060;
+        --secondary-color: #F8D8C9;
+        --background-color: #FFF8E1;
         --text-color: #4A4A4A;
         --container-bg: #FFFFFF;
     }
@@ -48,11 +48,7 @@ custom_css = """
         padding: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    .st-emotion-cache-1jm692n {
-        background-color: transparent;
-        padding: 0;
-    }
-    .st-emotion-cache-1j0r921 {
+    .st-emotion-cache-1jm692n, .st-emotion-cache-1j0r921 {
         background-color: transparent;
         padding: 0;
     }
@@ -91,15 +87,7 @@ custom_css = """
     }
 
     /* Styling für Checkboxen/Multiselect */
-    .st-emotion-cache-1b4z83b {
-        color: var(--primary-color);
-    }
-    .st-emotion-cache-79elbk {
-        color: var(--primary-color);
-    }
-
-    /* Feedback-Sterne */
-    .st-emotion-cache-t221l2 {
+    .st-emotion-cache-1b4z83b, .st-emotion-cache-79elbk {
         color: var(--primary-color);
     }
 </style>
@@ -107,28 +95,33 @@ custom_css = """
 st.markdown(custom_css, unsafe_allow_html=True)
 
 # --- 2. ZUSTAND DER APP VERWALTEN (SESSION STATE) ---
-if 'page' not in st.session_state:
-    st.session_state.page = 'start'
+# Initialisiert alle Variablen im Session State, wenn sie nicht existieren
+def init_session_state():
+    if 'page' not in st.session_state: st.session_state.page = 'start'
+    if 'problem' not in st.session_state: st.session_state.problem = ""
+    if 'problem_category' not in st.session_state: st.session_state.problem_category = "Wähle eine Kategorie"
+    if 'options' not in st.session_state: st.session_state.options = ["", ""]
+    if 'selected_values' not in st.session_state: st.session_state.selected_values = []
+    if 'values_rating' not in st.session_state: st.session_state.values_rating = {}
+    if 'emotions' not in st.session_state: st.session_state.emotions = ""
+    if 'pro_contra_a' not in st.session_state: st.session_state.pro_contra_a = ""
+    if 'pro_contra_b' not in st.session_state: st.session_state.pro_contra_b = ""
+    if 'future_scenario_a' not in st.session_state: st.session_state.future_scenario_a = ""
+    if 'future_scenario_b' not in st.session_state: st.session_state.future_scenario_b = ""
+    if 'first_step' not in st.session_state: st.session_state.first_step = ""
+    if 'eisenhower_a' not in st.session_state: st.session_state.eisenhower_a = {'wichtig': False, 'dringend': False}
+    if 'eisenhower_b' not in st.session_state: st.session_state.eisenhower_b = {'wichtig': False, 'dringend': False}
 
-# Initialisieren aller Variablen
-if 'problem' not in st.session_state: st.session_state.problem = ""
-if 'problem_category' not in st.session_state: st.session_state.problem_category = ""
-if 'options' not in st.session_state: st.session_state.options = ["", ""]
-if 'selected_values' not in st.session_state: st.session_state.selected_values = []
-if 'values_rating' not in st.session_state: st.session_state.values_rating = {}
-if 'emotions' not in st.session_state: st.session_state.emotions = ""
-if 'pro_contra_a' not in st.session_state: st.session_state.pro_contra_a = ""
-if 'pro_contra_b' not in st.session_state: st.session_state.pro_contra_b = ""
-if 'future_scenario_a' not in st.session_state: st.session_state.future_scenario_a = ""
-if 'future_scenario_b' not in st.session_state: st.session_state.future_scenario_b = ""
-if 'first_step' not in st.session_state: st.session_state.first_step = ""
-if 'eisenhower_a' not in st.session_state: st.session_state.eisenhower_a = {}
-if 'eisenhower_b' not in st.session_state: st.session_state.eisenhower_b = {}
-
+init_session_state()
 
 # Funktion, um die Seite zu wechseln
 def next_page(page_name):
     st.session_state.page = page_name
+
+# Funktion zum Zurücksetzen des Zustands für einen Neustart
+def reset_app():
+    st.session_state.clear()
+    init_session_state()
 
 # --- 3. DYNAMISCHE INHALTE FÜR JEDE KATEGORIE ---
 category_content = {
@@ -142,10 +135,9 @@ category_content = {
                 ("Bestätigungsfehler", "Suche ich nur nach Informationen, die meine Entscheidung für oder gegen einen Job bestätigen, und ignoriere ich gegenteilige Informationen?")
             ]
         },
-        "step_title": "Pro & Contra für Karriere-Entscheidungen",
     },
     "Persönliches Wachstum": {
-        "values": ["Selbstverwirklichung", "Finanzielle Stabilität", "Sicherheit", "Kreativität", "Autonomie", "Soziale Bindungen", "Entwicklung", "Anerkennung", "Freiheit"],
+        "values": ["Selbstverwirklichung", "Kreativität", "Lernen", "Soziale Bindungen", "Entwicklung", "Freiheit"],
         "cognitive_biases": {
             "title": "Häufige Denkfehler bei persönlichem Wachstum",
             "biases": [
@@ -154,27 +146,24 @@ category_content = {
                 ("Verfügbarkeitsheuristik", "Stütze ich meine Entscheidung nur auf leicht verfügbare, spektakuläre Geschichten, statt auf realistischere Fakten?")
             ]
         },
-        "step_title": "Pro & Contra für Persönliches Wachstum",
     },
     "Beziehungen & Familie": {
         "values": ["Soziale Bindungen", "Harmonie", "Vertrauen", "Empathie", "Stabilität", "Zugehörigkeit"],
         "cognitive_biases": {
             "title": "Häufige Denkfehler in Beziehungen",
             "biases": [
-                ("Rosinenpicken (Cherry Picking)", "Ignoriere ich alle negativen Aspekte und konzentriere mich nur auf die guten, um eine schwierige Situation zu vermeiden?"),
+                ("Rosinenpicken (Cherry Picking)", "Ignoriere ich alle negativen Aspekte und konzentriere ich mich nur auf die guten, um eine schwierige Situation zu vermeiden?"),
                 ("Irrglaube an versunkene Kosten (Sunk Cost Fallacy)", "Bleibe ich in einer Beziehung oder Situation, nur weil ich schon so viel Zeit und Energie investiert habe, anstatt nach vorne zu schauen?"),
                 ("Bestätigungsfehler", "Höre ich nur auf Freunde, die meine Meinung teilen, und vermeide ich Gespräche, die mich herausfordern?")
             ]
         },
-        "step_title": "Pro & Contra für Beziehungs-Entscheidungen",
     }
 }
 
 # --- 4. DIE VERSCHIEDENEN SCHRITTE DER APP RENDERN ---
 
-# Startseite
 def render_start_page():
-    st.title("Willkommen beim Decision Navigator")
+    st.title("Willkommen beim Decision Navigator ✨")
     st.markdown("---")
     st.markdown(
         """
@@ -184,46 +173,44 @@ def render_start_page():
         """
     )
     st.button("Starte deine Entscheidungsreise", on_click=next_page, args=['step_1'])
-    st.image("https://placehold.co/1200x400/FFF8E1/E2B060?text=Ein+interaktives+Tool+von+CafeCarin")
+    st.image("https://placehold.co/1200x400/FFF8E1/E2B060?text=Ein+interaktives+Tool+für+Entscheidungen")
 
-# Schritt 1: Problem und Optionen definieren
 def render_step_1():
     st.title("Schritt 1: Dein Problem & deine Optionen")
     st.markdown("---")
     
-    st.markdown("### Was ist die Entscheidung, die dich beschäftigt?")
+    st.markdown("### 🔍 Was ist die Entscheidung, die dich beschäftigt?")
     st.session_state.problem = st.text_area(
         "Formuliere deine Frage so klar wie möglich.",
         value=st.session_state.problem,
         key="problem_input"
     )
     
-    st.markdown("### Wähle eine Problemkategorie")
+    st.markdown("### 📚 Wähle eine Problemkategorie")
     st.markdown("Die Kategorie hilft uns, die passenden psychologischen Modelle für deine Situation auszuwählen.")
+    
+    # Sicherere Methode zur Initialisierung des selectbox-Index
+    options = ["Wähle eine Kategorie"] + list(category_content.keys())
+    try:
+        current_index = options.index(st.session_state.problem_category)
+    except ValueError:
+        current_index = 0
+
     st.session_state.problem_category = st.selectbox(
         "Kategorie:",
-        options=["Wähle eine Kategorie"] + list(category_content.keys()),
-        index=0 if st.session_state.problem_category == "" else list(category_content.keys()).index(st.session_state.problem_category) + 1
+        options=options,
+        index=current_index
     )
 
     st.markdown("### ➡️ Nenne deine Optionen")
-    st.session_state.options[0] = st.text_input(
-        "Option A:",
-        value=st.session_state.options[0],
-        key="option_a_input"
-    )
-    st.session_state.options[1] = st.text_input(
-        "Option B:",
-        value=st.session_state.options[1],
-        key="option_b_input"
-    )
+    st.session_state.options[0] = st.text_input("Option A:", value=st.session_state.options[0], key="option_a_input")
+    st.session_state.options[1] = st.text_input("Option B:", value=st.session_state.options[1], key="option_b_input")
 
-    is_valid = st.session_state.problem and st.session_state.options[0] and st.session_state.options[1] and st.session_state.problem_category != "Wähle eine Kategorie"
+    is_valid = all([st.session_state.problem, st.session_state.options[0], st.session_state.options[1], st.session_state.problem_category != "Wähle eine Kategorie"])
     if st.button("Weiter zur Werte-Analyse", disabled=not is_valid):
         next_page('step_2')
-    st.button("Zurück zur Startseite", on_click=next_page, args=['start'])
+    st.button("Zurück zur Startseite", on_click=reset_app)
 
-# Schritt 2: Werte- und Motivationsanalyse
 def render_step_2():
     st.title("Schritt 2: Werte & Motivation")
     st.markdown("---")
@@ -231,7 +218,7 @@ def render_step_2():
     selected_category = st.session_state.problem_category
     all_values = category_content.get(selected_category, {}).get("values", ["Sicherheit", "Freiheit", "Entwicklung"])
     
-    st.markdown("### Wähle deine wichtigsten Werte")
+    st.markdown("### ✨ Wähle deine wichtigsten Werte")
     st.markdown(f"""
     Wähle die Werte, die für deine Entscheidung in der Kategorie **"{selected_category}"** relevant sind.
     """)
@@ -243,35 +230,29 @@ def render_step_2():
     )
     
     if st.session_state.selected_values:
-        st.markdown("### Bewerte deine Optionen nach diesen Werten")
+        st.markdown("### ⚖️ Bewerte deine Optionen nach diesen Werten")
         st.markdown("Bewerte auf einer Skala von 1 bis 10, wie gut jede Option deine gewählten Werte erfüllt.")
         
-        col1, col2 = st.columns(2)
-        with col1:
-            st.subheader(f"Option A: {st.session_state.options[0]}")
-            for value in st.session_state.selected_values:
-                st.session_state.values_rating[f"{value}_A"] = st.slider(
-                    f"**{value}**", 
-                    0, 10, st.session_state.values_rating.get(f"{value}_A", 5), key=f"slider_a_{value}"
-                )
-        with col2:
-            st.subheader(f"Option B: {st.session_state.options[1]}")
-            for value in st.session_state.selected_values:
-                st.session_state.values_rating[f"{value}_B"] = st.slider(
-                    f"**{value}**", 
-                    0, 10, st.session_state.values_rating.get(f"{value}_B", 5), key=f"slider_b_{value}"
-                )
+        for value in st.session_state.selected_values:
+            st.subheader(f"Wert: {value}")
+            st.session_state.values_rating[f"{value}_A"] = st.slider(
+                f"Bewerte {st.session_state.options[0]} nach dem Wert '{value}'",
+                0, 10, st.session_state.values_rating.get(f"{value}_A", 5), key=f"slider_a_{value}"
+            )
+            st.session_state.values_rating[f"{value}_B"] = st.slider(
+                f"Bewerte {st.session_state.options[1]} nach dem Wert '{value}'",
+                0, 10, st.session_state.values_rating.get(f"{value}_B", 5), key=f"slider_b_{value}"
+            )
         
     if st.button("Weiter zur Reflexion"):
         next_page('step_3')
     st.button("Zurück", on_click=next_page, args=['step_1'])
 
-# Schritt 3: Emotionen & Denkfehler
 def render_step_3():
     st.title("Schritt 3: Emotionen & Denkfehler")
     st.markdown("---")
     
-    st.markdown("### Was sagt dein Bauchgefühl?")
+    st.markdown("### 🧠 Was sagt dein Bauchgefühl?")
     st.markdown("Schreibe auf, welche Gefühle und intuitiven Gedanken du zu den Optionen hast.")
     st.session_state.emotions = st.text_area(
         "Deine Gedanken und Gefühle:",
@@ -279,13 +260,7 @@ def render_step_3():
     )
     
     st.markdown("---")
-    st.markdown("### Reflektiere über deine Denkfehler")
-    st.markdown("""
-    Sogenannte **kognitive Verzerrungen** sind systematische Fehler im Denken, die uns von einer rationalen Entscheidung abhalten können.
-    
-    **Frage dich, ob folgende Denkfehler deine Entscheidung beeinflussen könnten:**
-    """)
-    
+    st.markdown("### 🤔 Reflektiere über Denkfehler")
     selected_content = category_content.get(st.session_state.problem_category, {})
     biases = selected_content.get("cognitive_biases", {}).get("biases", [])
     
@@ -297,35 +272,23 @@ def render_step_3():
         next_page('step_4')
     st.button("Zurück", on_click=next_page, args=['step_2'])
 
-# Schritt 4: Eisenhower-Matrix
 def render_step_4():
     st.title("Schritt 4: Die Eisenhower-Matrix")
     st.markdown("---")
     st.markdown("### ⏰ Bewerte Dringlichkeit & Wichtigkeit")
-    st.markdown("""
-    Die **Eisenhower-Matrix** hilft dir, die Prioritäten deiner Optionen zu klären. 
-    Bewerte jede Option nach ihrer **Wichtigkeit** (Wie sehr trägt sie zu deinen langfristigen Zielen bei?) und **Dringlichkeit** (Wie schnell muss eine Entscheidung getroffen werden?).
-    """)
     
-    # Sicherstellen, dass die Session-Zustände initialisiert sind
-    if 'eisenhower_a_wichtig' not in st.session_state.eisenhower_a: st.session_state.eisenhower_a['wichtig'] = False
-    if 'eisenhower_a_dringend' not in st.session_state.eisenhower_a: st.session_state.eisenhower_a['dringend'] = False
-    if 'eisenhower_b_wichtig' not in st.session_state.eisenhower_b: st.session_state.eisenhower_b['wichtig'] = False
-    if 'eisenhower_b_dringend' not in st.session_state.eisenhower_b: st.session_state.eisenhower_b['dringend'] = False
-
     st.subheader(f"Option A: {st.session_state.options[0]}")
-    st.session_state.eisenhower_a['wichtig'] = st.checkbox("Wichtig", value=st.session_state.eisenhower_a['wichtig'], key="eisenhower_a_wichtig")
-    st.session_state.eisenhower_a['dringend'] = st.checkbox("Dringend", value=st.session_state.eisenhower_a['dringend'], key="eisenhower_a_dringend")
+    st.session_state.eisenhower_a['wichtig'] = st.checkbox("Wichtig", value=st.session_state.eisenhower_a.get('wichtig', False), key="eisenhower_a_wichtig")
+    st.session_state.eisenhower_a['dringend'] = st.checkbox("Dringend", value=st.session_state.eisenhower_a.get('dringend', False), key="eisenhower_a_dringend")
     
     st.subheader(f"Option B: {st.session_state.options[1]}")
-    st.session_state.eisenhower_b['wichtig'] = st.checkbox("Wichtig", value=st.session_state.eisenhower_b['wichtig'], key="eisenhower_b_wichtig")
-    st.session_state.eisenhower_b['dringend'] = st.checkbox("Dringend", value=st.session_state.eisenhower_b['dringend'], key="eisenhower_b_dringend")
+    st.session_state.eisenhower_b['wichtig'] = st.checkbox("Wichtig", value=st.session_state.eisenhower_b.get('wichtig', False), key="eisenhower_b_wichtig")
+    st.session_state.eisenhower_b['dringend'] = st.checkbox("Dringend", value=st.session_state.eisenhower_b.get('dringend', False), key="eisenhower_b_dringend")
 
     if st.button("Weiter zur Pro & Contra Simulation"):
         next_page('step_5')
     st.button("Zurück", on_click=next_page, args=['step_3'])
 
-# Schritt 5: Pro & Contra und Zukunftssimulation
 def render_step_5():
     st.title("Schritt 5: Pro & Contra und Zukunftsszenario")
     st.markdown("---")
@@ -363,12 +326,10 @@ def render_step_5():
         next_page('step_6')
     st.button("Zurück", on_click=next_page, args=['step_4'])
 
-
-    
-
-    # --- Die Zusammenfassung unserer App ---
+def render_step_6():
     st.markdown("---")
-    st.markdown("## Übersicht deiner Entscheidungsreise")
+    st.markdown("## 🎉 Deine Entscheidungs-Zusammenfassung")
+    st.markdown("### 📝 Übersicht deiner Entscheidungsreise")
     st.subheader("Deine Entscheidung:")
     st.info(st.session_state.problem)
 
@@ -416,7 +377,7 @@ def render_step_5():
     
     st.markdown("---")
 
-    st.markdown("### Dein erster konkreter Schritt")
+    st.markdown("### 🚀 Dein erster konkreter Schritt")
     st.markdown("""
     Formuliere einen kleinen, konkreten Schritt, den du sofort umsetzen kannst. Ein guter Ansatz hierfür ist die **SMART-Methode**:
     * **S - Spezifisch:** Was genau möchtest du tun? Wer ist beteiligt? Wo findet es statt?
@@ -431,18 +392,14 @@ def render_step_5():
     )
     
     if st.button("Entscheidung abschließen"):
-        st.success("Deine Entscheidungsreise ist abgeschlossen!")
-       
+        st.success("🎉 Deine Entscheidungsreise wurde abgeschlossen!")
         
-    
-    if st.button("Neue Entscheidungsreise starten", on_click=next_page, args=['start']):
-        # Zurück zum Start und alle Variablen zurücksetzen
-        st.session_state.clear()
-        st.session_state.page = 'start'
+    if st.button("Neue Entscheidungsreise starten", on_click=reset_app):
+        pass # Die Funktion reset_app kümmert sich um den Neustart
 
 
 # --- 5. DIE HAUPTLOGIK DER APP ---
-# Streamlit rendert basierend auf dem aktuellen Wert von st.session_state.page
+# Die Hauptlogik, die basierend auf dem 'page'-Wert die richtige Funktion aufruft
 if st.session_state.page == 'start':
     render_start_page()
 elif st.session_state.page == 'step_1':
