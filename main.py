@@ -137,13 +137,14 @@ def init_session_state():
     if 'selected_values' not in st.session_state: st.session_state.selected_values = []
     if 'values_rating' not in st.session_state: st.session_state.values_rating = {}
     if 'emotions' not in st.session_state: st.session_state.emotions = ""
-    if 'pro_contra_a' not in st.session_state: st.session_state.pro_contra_a = ""
-    if 'pro_contra_b' not in st.session_state: st.session_state.pro_contra_b = ""
+    # Neue, separate Pro- und Contra-Felder
+    if 'pro_a' not in st.session_state: st.session_state.pro_a = ""
+    if 'contra_a' not in st.session_state: st.session_state.contra_a = ""
+    if 'pro_b' not in st.session_state: st.session_state.pro_b = ""
+    if 'contra_b' not in st.session_state: st.session_state.contra_b = ""
     if 'future_scenario_a' not in st.session_state: st.session_state.future_scenario_a = ""
     if 'future_scenario_b' not in st.session_state: st.session_state.future_scenario_b = ""
     if 'first_step' not in st.session_state: st.session_state.first_step = ""
-    if 'eisenhower_a' not in st.session_state: st.session_state.eisenhower_a = {'wichtig': False, 'dringend': False}
-    if 'eisenhower_b' not in st.session_state: st.session_state.eisenhower_b = {'wichtig': False, 'dringend': False}
 
 init_session_state()
 
@@ -245,7 +246,7 @@ def render_step_2():
     
     with st.container():
         st.markdown(f"#### Psychologische Werte")
-        st.markdown("Wähle die Werte, die für deine Entscheidung in der Kategorie **'{selected_category}'** relevant sind.")
+        st.markdown("Wähle alle Werte, die für deine Entscheidung in der Kategorie **'{selected_category}'** relevant sind.")
         st.session_state.selected_values = st.multiselect(
             "Deine Top-Werte:",
             options=all_values,
@@ -291,44 +292,44 @@ def render_step_3():
                     st.markdown(bias_question)
 
     if st.button("Weiter"):
-        next_page('step_4')
+        next_page('step_4') # Gehe zum neuen Schritt 4 (ehemals Schritt 5)
 
 def render_step_4():
-    st.title("Step 4: Eisenhower-Matrix")
+    st.title("Step 4: Pro/Contra & Zukunft")
     
-    col_a, col_b = st.columns(2)
-    with col_a:
-        with st.container():
-            st.subheader(f"Option A: {st.session_state.options[0]}")
-            st.session_state.eisenhower_a['wichtig'] = st.checkbox("Wichtig", value=st.session_state.eisenhower_a.get('wichtig', False), key="eisenhower_a_wichtig")
-            st.session_state.eisenhower_a['dringend'] = st.checkbox("Dringend", value=st.session_state.eisenhower_a.get('dringend', False), key="eisenhower_a_dringend")
-    with col_b:
-        with st.container():
-            st.subheader(f"Option B: {st.session_state.options[1]}")
-            st.session_state.eisenhower_b['wichtig'] = st.checkbox("Wichtig", value=st.session_state.eisenhower_b.get('wichtig', False), key="eisenhower_b_wichtig")
-            st.session_state.eisenhower_b['dringend'] = st.checkbox("Dringend", value=st.session_state.eisenhower_b.get('dringend', False), key="eisenhower_b_dringend")
-
-    if st.button("Weiter"):
-        next_page('step_5')
-
-def render_step_5():
-    st.title("Step 5: Pro/Contra & Zukunft")
-    
+    # Pro und Contra Felder für Option A
     with st.container():
-        st.markdown(f"#### Pro- & Contra-Liste für '{st.session_state.options[0]}'")
-        st.session_state.pro_contra_a = st.text_area(
-            "Liste deine Gedanken auf:",
-            value=st.session_state.pro_contra_a,
-            key="pro_contra_a_area", height=150
+        st.markdown(f"#### Pro-Liste für '{st.session_state.options[0]}'")
+        st.session_state.pro_a = st.text_area(
+            "Was spricht für diese Option?",
+            value=st.session_state.pro_a,
+            key="pro_a_area", height=150
         )
     with st.container():
-        st.markdown(f"#### Pro- & Contra-Liste für '{st.session_state.options[1]}'")
-        st.session_state.pro_contra_b = st.text_area(
-            "Liste deine Gedanken auf:",
-            value=st.session_state.pro_contra_b,
-            key="pro_contra_b_area", height=150
+        st.markdown(f"#### Contra-Liste für '{st.session_state.options[0]}'")
+        st.session_state.contra_a = st.text_area(
+            "Was spricht gegen diese Option?",
+            value=st.session_state.contra_a,
+            key="contra_a_area", height=150
         )
     
+    # Pro und Contra Felder für Option B
+    with st.container():
+        st.markdown(f"#### Pro-Liste für '{st.session_state.options[1]}'")
+        st.session_state.pro_b = st.text_area(
+            "Was spricht für diese Option?",
+            value=st.session_state.pro_b,
+            key="pro_b_area", height=150
+        )
+    with st.container():
+        st.markdown(f"#### Contra-Liste für '{st.session_state.options[1]}'")
+        st.session_state.contra_b = st.text_area(
+            "Was spricht gegen diese Option?",
+            value=st.session_state.contra_b,
+            key="contra_b_area", height=150
+        )
+
+    # Zukunftsszenarien (unverändert)
     with st.container():
         st.markdown(f"#### Zukunftsszenario für '{st.session_state.options[0]}'")
         st.session_state.future_scenario_a = st.text_area(
@@ -346,10 +347,10 @@ def render_step_5():
         )
 
     if st.button("Weiter"):
-        next_page('step_6')
+        next_page('step_5') # Gehe zur neuen finalen Seite
 
-def render_step_6():
-    st.title("Step 6: Zusammenfassung")
+def render_step_5():
+    st.title("Step 5: Zusammenfassung")
     
     with st.container():
         st.markdown("#### Übersicht")
@@ -389,17 +390,29 @@ def render_step_6():
 
     with st.container():
         st.markdown("#### Deine Gedanken & Szenarien:")
-        st.write(f"**Pro & Contra für {st.session_state.options[0]}:**")
-        st.write(st.session_state.pro_contra_a)
-        st.write(f"**Pro & Contra für {st.session_state.options[1]}:**")
-        st.write(st.session_state.pro_contra_b)
+        st.write(f"**Pro für {st.session_state.options[0]}:**")
+        st.write(st.session_state.pro_a)
+        st.write(f"**Contra für {st.session_state.options[0]}:**")
+        st.write(st.session_state.contra_a)
+        st.write(f"**Pro für {st.session_state.options[1]}:**")
+        st.write(st.session_state.pro_b)
+        st.write(f"**Contra für {st.session_state.options[1]}:**")
+        st.write(st.session_state.contra_b)
         st.write(f"**Zukunftsszenario {st.session_state.options[0]}:**")
         st.write(st.session_state.future_scenario_a)
         st.write(f"**Zukunftsszenario {st.session_state.options[1]}:**")
         st.write(st.session_state.future_scenario_b)
     
     with st.container():
-        st.markdown("#### Dein erster konkreter Schritt")
+        st.markdown("#### Dein erster konkreter Schritt (SMART-Ziele)")
+        st.markdown("""
+        Um deinen ersten Schritt umsetzbar zu machen, nutze die **SMART-Methode**:
+        - **S**pezifisch: Was genau willst du tun?
+        - **M**essbar: Woran erkennst du, dass du dein Ziel erreicht hast?
+        - **A**ttraktiv: Warum ist dir das Ziel wichtig?
+        - **R**ealistisch: Ist das Ziel erreichbar?
+        - **T**erminiert: Bis wann willst du es umsetzen?
+        """)
         st.session_state.first_step = st.text_input(
             "Dein erster konkreter SMART-Schritt:",
             value=st.session_state.first_step
@@ -419,7 +432,7 @@ def render_bottom_nav():
         <a href="?page=step_1" class="nav-item {'active' if st.session_state.page == 'step_1' else ''}">
             <span class="icon">🧠</span> Decide
         </a>
-        <a href="?page=step_6" class="nav-item {'active' if st.session_state.page == 'step_6' else ''}">
+        <a href="?page=step_5" class="nav-item {'active' if st.session_state.page == 'step_5' else ''}">
             <span class="icon">📊</span> Summary
         </a>
     </div>
@@ -443,8 +456,6 @@ def main():
         render_step_4()
     elif st.session_state.page == 'step_5':
         render_step_5()
-    elif st.session_state.page == 'step_6':
-        render_step_6()
     
     if st.session_state.page != 'start':
         render_bottom_nav()
