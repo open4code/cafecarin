@@ -303,6 +303,7 @@ def render_step_3():
                 with st.expander(f"**{bias_title}**"):
                     st.markdown(bias_question)
 
+    # Die "Weiter" Schaltfläche wurde hierher verschoben, um erst nach den Expandern zu erscheinen.
     if st.button("Weiter"):
         next_page('step_4')
 
