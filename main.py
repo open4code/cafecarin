@@ -259,6 +259,7 @@ def render_step_2():
         with st.container():
             st.markdown("#### Werte-Bewertung")
             st.markdown("Bewerte auf einer Skala von 1 bis 10, wie gut jede Option deine gewählten Werte erfüllt.")
+            st.markdown("Die Punktzahl, die du hier vergibst, **gewichtet** automatisch die Wichtigkeit der Werte für deine endgültige Entscheidung.")
             for value in st.session_state.selected_values:
                 st.subheader(f"Wert: {value}")
                 col_a, col_b = st.columns(2)
