@@ -458,7 +458,8 @@ def render_step_2():
     
     with st.container():
         st.markdown(f"#### Psychologische Werte")
-        st.markdown("Wähle alle Werte aus, die für deine Entscheidung in der Kategorie **'{selected_category}'** relevant sind.")
+        # Korrigierte Zeile zur korrekten Anzeige des Kategorienamens
+        st.markdown(f"Wähle alle Werte aus, die für deine Entscheidung in der Kategorie **{selected_category}** relevant sind.")
         
         # Leere die Liste der ausgewählten Werte, bevor die Checkboxen gerendert werden, um den Zustand korrekt zu aktualisieren
         st.session_state.selected_values = []
