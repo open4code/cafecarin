@@ -10,6 +10,7 @@ import json
 import requests
 import time
 import base64
+import random
 
 # --- 1. SEITENKONFIGURATION & STYLING ---
 st.set_page_config(
@@ -42,13 +43,15 @@ custom_css = """
 
     /* Styling für alle Container und Expander (die "Karten") */
     div[data-testid="stVerticalBlock"] > div.st-emotion-cache-1r6y9j9,
-    div[data-testid="stVerticalBlock"] > div.st-emotion-cache-1n1p067 {
+    div[data-testid="stVerticalBlock"] > div.st-emotion-cache-1n1p067,
+    .stTabs [role="tablist"] button[aria-selected="true"] {
         background-color: var(--container-bg);
         border-radius: var(--border-radius);
         padding: 20px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         margin-bottom: 20px;
     }
+    
     .st-emotion-cache-1jm692n, .st-emotion-cache-1j0r921 {
         background-color: transparent;
         padding: 0;
@@ -62,6 +65,12 @@ custom_css = """
     h1 {
         color: var(--primary-color);
         font-size: 2.5rem;
+    }
+    
+    .st-emotion-cache-12m32bb {
+        background-color: #FFF;
+        border-radius: 16px;
+        padding: 10px;
     }
 
     /* Styling für Buttons */
@@ -208,7 +217,6 @@ def init_session_state():
     if 'problem' not in st.session_state: st.session_state.problem = ""
     if 'problem_category' not in st.session_state: st.session_state.problem_category = "Wähle eine Kategorie"
     if 'options' not in st.session_state: st.session_state.options = ["", ""]
-    # Die Liste der ausgewählten Werte muss beim initialen Laden leer sein
     if 'selected_values' not in st.session_state: st.session_state.selected_values = []
     if 'values_rating' not in st.session_state: st.session_state.values_rating = {}
     if 'emotions' not in st.session_state: st.session_state.emotions = ""
@@ -216,18 +224,21 @@ def init_session_state():
     if 'contra_a' not in st.session_state: st.session_state.contra_a = ""
     if 'pro_b' not in st.session_state: st.session_state.pro_b = ""
     if 'contra_b' not in st.session_state: st.session_state.contra_b = ""
-    # Neues Feld für kreative Optionen
     if 'creative_options' not in st.session_state: st.session_state.creative_options = ""
     if 'future_scenario_a' not in st.session_state: st.session_state.future_scenario_a = ""
     if 'future_scenario_b' not in st.session_state: st.session_state.future_scenario_b = ""
     if 'first_step' not in st.session_state: st.session_state.first_step = ""
     
-    # Neue Felder für den Resilienz-Fragebogen
+    # Zustand für den Fragebogen zur Resilienz
     if 'resilience_answers' not in st.session_state: st.session_state.resilience_answers = {}
     if 'resilience_score' not in st.session_state: st.session_state.resilience_score = None
     if 'resilience_analysis' not in st.session_state: st.session_state.resilience_analysis = None
     if 'processing_analysis' not in st.session_state: st.session_state.processing_analysis = False
-
+    
+    # Zustand für die Resilienz-Pfade
+    if 'current_path' not in st.session_state: st.session_state.current_path = None
+    if 'current_stage_index' not in st.session_state: st.session_state.current_stage_index = 0
+    if 'show_path_screen' not in st.session_state: st.session_state.show_path_screen = False
 
 init_session_state()
 
@@ -275,100 +286,67 @@ category_content = {
     }
 }
 
-# Fragen für den Resilienz-Fragebogen (jetzt alle 33 Fragen)
-resilience_questions = [
-    # Selbstwahrnehmung
-    "Ich bin mir meiner Stärken und Schwächen bewusst.",
-    "Ich kenne meine Emotionen und kann sie benennen.",
-    "Ich erkenne, wie meine Gedanken mein Verhalten beeinflussen.",
-    # Selbstwirksamkeit
-    "Ich bin überzeugt, dass ich schwierige Situationen meistern kann.",
-    "Ich glaube an meine Fähigkeit, Probleme zu lösen.",
-    "Ich fühle mich kompetent, um meine Ziele zu erreichen.",
-    # Soziale Beziehungen
-    "Ich habe Menschen, auf die ich mich in Krisen verlassen kann.",
-    "Ich suche aktiv den Kontakt zu Freunden und Familie, wenn ich Unterstützung brauche.",
-    "Ich fühle mich in meinen Beziehungen geborgen und angenommen.",
-    # Emotionsregulation
-    "Ich kann mit starken Gefühlen wie Wut oder Trauer umgehen, ohne dass sie mich überfordern.",
-    "Ich finde gesunde Wege, um mich nach einem stressigen Tag zu entspannen.",
-    "Ich erlaube mir, alle meine Gefühle zu spüren, ohne sie zu bewerten.",
-    # Stressbewältigung
-    "Ich habe Techniken, um mich in stressigen Momenten zu beruhigen.",
-    "Ich kann Prioritäten setzen, um Stress zu reduzieren.",
-    "Ich weiß, wie ich meine Energiereserven wieder aufladen kann.",
-    # Problemlösungskompetenz
-    "Ich gehe Problemen aktiv und systematisch an, anstatt sie zu ignorieren.",
-    "Ich kann eine Situation aus verschiedenen Perspektiven betrachten, um eine Lösung zu finden.",
-    "Ich bin kreativ in der Suche nach neuen Lösungen.",
-    # Zukunftsorientierung
-    "Ich bin optimistisch, was meine Zukunft angeht.",
-    "Ich kann mir positive Entwicklungen für mein Leben vorstellen.",
-    "Ich habe klare Ziele, die mir Orientierung geben.",
-    # Akzeptanz
-    "Ich kann Dinge akzeptieren, die ich nicht ändern kann.",
-    "Ich vergebe mir selbst für Fehler, die ich gemacht habe.",
-    "Ich nehme Herausforderungen als Teil des Lebens an.",
-    # Sinnorientierung
-    "Ich finde meine Handlungen auch in schwierigen Zeiten sinnvoll.",
-    "Ich spüre eine Verbindung zu etwas Größerem als mir selbst.",
-    "Meine Werte leiten mich durchs Leben.",
-    # Kreativität
-    "Ich bin offen für neue Ideen und unkonventionelle Lösungen.",
-    "Ich nutze meine Vorstellungskraft, um aus einer schwierigen Situation herauszukommen.",
-    "Ich kann mich von starren Denkmustern lösen.",
-    # Humor
-    "Ich kann auch in schwierigen Situationen noch lachen.",
-    "Ich nutze Humor als Ventil, um Anspannung zu lösen.",
-    "Ich kann über mich selbst lachen, ohne mich zu verurteilen."
-]
 
-# Vorab definierte Analysen basierend auf dem Score (als Ersatz für die API)
-def get_canned_analysis(score, max_score):
-    if score <= max_score * 0.4:
-        return """
-**Deine Resilienz: Fundament aufbauen**
+# Daten für die verschiedenen Resilienz-Pfade
+paths = {
+    'stress': {
+        'title': 'Stressabbau',
+        'description': 'Finden Sie innere Ruhe durch geführte Meditationen und Atemübungen.',
+        'stages': [
+            {'title': 'Atemübungen', 'description': 'Beginnen Sie mit einer einfachen Atemübung, um zur Ruhe zu kommen.'},
+            {'title': 'Geführte Meditation', 'description': 'Hören Sie sich eine kurze geführte Meditation an, um Ihren Geist zu klären.'},
+            {'title': 'Körperliche Aktivität', 'description': 'Bauen Sie Stress durch eine kurze körperliche Aktivität ab, z.B. einen Spaziergang.'}
+        ],
+        'tips': [
+            'Achten Sie auf Ihre Atmung.',
+            'Lassen Sie Gedanken los, ohne sie zu bewerten.',
+            'Regelmäßigkeit ist der Schlüssel.'
+        ]
+    },
+    'self-image': {
+        'title': 'Selbstbild stärken',
+        'description': 'Stärken Sie Ihr Selbstwertgefühl und Ihre Selbstwirksamkeit.',
+        'stages': [
+            {'title': 'Positive Affirmationen', 'description': 'Beginnen Sie jeden Tag mit einer positiven Affirmation.'},
+            {'title': 'Dankbarkeits-Journal', 'description': 'Schreiben Sie täglich drei Dinge auf, für die Sie dankbar sind.'},
+            {'title': 'Erfolge feiern', 'description': 'Erinnern Sie sich an einen Erfolg aus Ihrer Vergangenheit und feiern Sie ihn.'}
+        ],
+        'tips': [
+            'Wiederholen Sie die Affirmationen laut.',
+            'Fokussieren Sie sich auf kleine, tägliche Erfolge.',
+            'Seien Sie geduldig und freundlich zu sich selbst.'
+        ]
+    },
+    'self-efficacy': {
+        'title': 'Selbstwirksamkeitserwartung',
+        'description': 'Entwickeln Sie das Vertrauen, Ihre Ziele erfolgreich zu meistern.',
+        'stages': [
+            {'title': 'Kleine Ziele setzen', 'description': 'Wählen Sie ein kleines, leicht erreichbares Ziel und erreichen Sie es.'},
+            {'title': 'Lernkurve erkennen', 'description': 'Betrachten Sie Misserfolge als Lernchancen, nicht als Rückschläge.'},
+            {'title': 'Mentoren finden', 'description': 'Lernen Sie von Menschen, die Ihre Ziele bereits erreicht haben.'}
+        ],
+        'tips': [
+            'Feiern Sie jeden noch so kleinen Fortschritt.',
+            'Seien Sie realistisch mit Ihren Zielen.',
+            'Umgeben Sie sich mit positiven Vorbildern.'
+        ]
+    },
+    'connectedness': {
+        'title': 'Verbundenheit',
+        'description': 'Stärken Sie Ihre Beziehungen und Ihre Verbindung zu anderen.',
+        'stages': [
+            {'title': 'Kontakt aufnehmen', 'description': 'Schreiben Sie einer Person, die Ihnen wichtig ist, eine kurze Nachricht.'},
+            {'title': 'Zuhören', 'description': 'Üben Sie aktives Zuhören in einem Gespräch.'},
+            {'title': 'Empathie zeigen', 'description': 'Versuchen Sie, die Perspektive einer anderen Person zu verstehen.'}
+        ],
+        'tips': [
+            'Seien Sie präsent im Moment.',
+            'Ein Lächeln kann Wunder wirken.',
+            'Qualität geht vor Quantität.'
+        ]
+    }
+}
 
-Deine aktuelle Punktzahl deutet darauf hin, dass du dich in einigen Bereichen deiner Resilienz noch im Aufbau befindest. Das ist eine wichtige Erkenntnis! Es zeigt, dass du das Potenzial hast, deine Widerstandsfähigkeit gezielt zu stärken und dich besser auf künftige Herausforderungen vorzubereiten. Die Arbeit an diesen Faktoren kann einen großen Unterschied in deinem Wohlbefinden machen.
-
-**Tipps zur Stärkung deiner Resilienz:**
-
-1.  **Selbstwahrnehmung & Selbstfürsorge**: Beginne damit, dich selbst besser kennenzulernen. Frage dich, wie du dich fühlst und was du wirklich brauchst. Integriere kleine Rituale in deinen Alltag, die nur dir gewidmet sind, sei es ein 10-minütiger Spaziergang, eine Tasse Tee in Ruhe oder ein heißes Bad.
-2.  **Soziale Beziehungen aktiv pflegen**: Suche den Kontakt zu Menschen, die dir guttun und denen du vertraust. Ein offenes Gespräch über deine Gefühle kann eine enorme Last von deinen Schultern nehmen.
-3.  **Realistische Ziele setzen**: Große Probleme können überwältigend wirken. Zerlege sie in kleine, überschaubare Schritte. Wenn du zum Beispiel eine neue Fähigkeit lernen willst, fange mit einem 15-minütigen Online-Tutorial an, anstatt direkt einen ganzen Kurs zu planen.
-4.  **Umgang mit Gefühlen lernen**: Gefühle sind Wegweiser. Versuche, sie ohne Urteil zu beobachten, anstatt sie zu unterdrücken. Ein Emotionstagebuch kann dir helfen, Muster zu erkennen.
-5.  **Perspektivwechsel üben**: Wenn eine Situation aussichtslos erscheint, versuche sie aus einem anderen Blickwinkel zu betrachten. Wie würde ein Freund die Situation sehen? Welche Lektion kannst du daraus lernen?
-"""
-    elif score <= max_score * 0.7:
-        return """
-**Deine Resilienz: Solides Fundament**
-
-Deine Punktzahl zeigt, dass du bereits über ein solides Fundament an Resilienz verfügst. Du bist in der Lage, mit Herausforderungen umzugehen und hast bereits einige der wichtigsten Resilienzfaktoren in deinem Leben integriert. Das ist eine großartige Ausgangslage, um deine Fähigkeiten gezielt weiter auszubauen.
-
-**Tipps zur Stärkung deiner Resilienz:**
-
-1.  **Soziales Netz bewusst stärken**: Pflege deine Beziehungen aktiv. Organisiere regelmäßige Treffen, sei ein guter Zuhörer und biete deine Hilfe an. Ein starkes soziales Netz ist dein wichtigster Puffer in schwierigen Zeiten.
-2.  **Kreative Problemlösung**: Wenn du vor einem Problem stehst, gehe es nicht nur auf dem naheliegendsten Weg an. Brainstorme unkonventionelle Lösungen, denke "out of the box". Manchmal liegt die Lösung in einer völlig unerwarteten Idee.
-3.  **Sinn und Werte vertiefen**: Reflektiere regelmäßig darüber, was dir im Leben wirklich wichtig ist. Wenn du deine Handlungen an deinen Werten ausrichtest, gewinnst du an innerer Stärke und Orientierung. Überlege, wie du dein Handeln noch besser mit deinen tiefsten Überzeugungen in Einklang bringen kannst.
-4.  **Optimismus kultivieren**: Übe dich darin, auch in schwierigen Situationen nach den positiven Aspekten zu suchen, ohne die Realität zu leugnen. Welche Lektion kannst du aus dieser Erfahrung lernen? Betrachte Krisen als Wachstumschancen.
-5.  **Humor einsetzen**: Nimm das Leben nicht immer zu ernst. Humor ist ein mächtiges Werkzeug, um Anspannung zu lösen und eine positive Perspektive zu bewahren. Suche bewusst nach Gelegenheiten zum Lachen, sei es durch Filme, Witze oder einfach das Teilen lustiger Anekdoten.
-"""
-    else:
-        return """
-**Deine Resilienz: Hohe Widerstandsfähigkeit**
-
-Herzlichen Glückwunsch! Deine hohe Punktzahl zeigt, dass du über eine starke Resilienz verfügst. Du bist gut gerüstet, um mit Rückschlägen und Krisen umzugehen und kannst diese sogar als Chance für Wachstum nutzen. Deine Fähigkeiten in Bereichen wie Selbstwahrnehmung, Problemlösung und sozialen Beziehungen sind gut ausgeprägt.
-
-**Tipps zur Aufrechterhaltung und Weiterentwicklung:**
-
-1.  **Mentoring und Wissensaustausch**: Nutze deine Stärke, um auch anderen zu helfen. Indem du deine Erfahrungen teilst, stärkst du nicht nur dein eigenes Fundament, sondern unterstützt auch dein Umfeld und schaffst ein Netzwerk der gegenseitigen Unterstützung.
-2.  **Aktivität in den Lebensbereichen**: Setze dir bewusst Ziele in Bereichen, die du vielleicht bisher vernachlässigt hast. Ob es darum geht, ein neues Hobby zu beginnen, eine neue Sprache zu lernen oder dich ehrenamtlich zu engagieren – du hast die Fähigkeit, dich anzupassen und zu wachsen.
-3.  **Lebenssinn vertiefen**: Reflektiere, wie deine täglichen Handlungen zu deinem größeren Lebenssinn beitragen. Wenn du eine starke Sinnorientierung hast, kannst du auch die größten Stürme überstehen, ohne dein Ziel aus den Augen zu verlieren.
-4.  **Kreativität als Lebenshaltung**: Nutze deine Kreativität nicht nur zur Problemlösung, sondern auch als Ausdruck deiner Persönlichkeit. Malen, schreiben, Musik machen oder einfach nur das Finden unkonventioneller Wege im Alltag können deine innere Stärke weiter festigen.
-5.  **Humor als Resilienzanker**: Integriere Humor bewusst in deinen Alltag. Lache über dich selbst, teile lustige Momente mit anderen und nutze Humor, um Anspannung zu reduzieren. Humor ist eine der stärksten Waffen gegen Widrigkeiten.
-"""
-
-# --- 4. SEITEN-INHALT RENDERN ---
 
 def render_start_page():
     # Haupt-Container für die Startseite
@@ -385,33 +363,170 @@ def render_start_page():
 
         with col2:
             st.markdown("### Werte-Reflexion")
-            st.markdown("Du steckst gerade in einer Krise? Finden wir heraus was deine Resilienzfaktoren sein könnten, um zukünftige Krisen gut bewältigen zu können.")
+            st.markdown("Du steckst gerade in einer Krise? Stärke deine Resilienzfaktoren, um zukünftige Krisen gut bewältigen zu können.")
             st.button("Starte die Werte-Reflexion", on_click=next_page, args=['wert_reflexion'])
 
-def render_wert_reflexion_page():
-    st.title("Werte-Reflexion & Das große Bild")
-    st.markdown("""
-    Dies ist ein Bereich mit Potenzial, um **deine täglichen Handlungen mit deinen tiefsten Werten und deinem Lebenssinn in Einklang zu bringen**.
-    """)
 
-    st.subheader("Strategien zur Verbesserung:")
+def render_wert_reflexion_page():
+    st.title("Werte-Reflexion & Resilienz")
     
-    st.markdown("""
-    **1. Werte identifizieren:**
-    Nehmen Sie sich Zeit, um zu identifizieren, was Ihnen wirklich wichtig ist. Schreiben Sie Ihre zentralen Werte auf, wie z.B. Familie, Ehrlichkeit, Kreativität oder Erfolg.
-    """)
+    tab1, tab2 = st.tabs(["Resilienz-Fragebogen", "Interaktive Pfade"])
     
-    st.markdown("""
-    **2. Zusammenhänge verstehen:**
-    Wenn Sie mit einem kleinen Problem konfrontiert sind, versuchen Sie, es in einen größeren Kontext zu stellen. Versuchen Sie, Verhaltensweisen von Menschen oder Ereignisse aus einem anderen Blickwinkel zu betrachten.
-    """)
+    with tab1:
+        st.header("Wie steht es um deine Resilienz?")
+        st.markdown("Beantworte die folgenden Fragen, um eine erste Einschätzung deiner Widerstandsfähigkeit zu erhalten.")
+        
+        # Fragen für den Fragebogen
+        questions = [
+            "Ich kann mich gut von Rückschlägen erholen.",
+            "Ich habe ein starkes soziales Netzwerk, auf das ich mich verlassen kann.",
+            "Ich betrachte Herausforderungen als Chancen zu wachsen.",
+            "Ich bin optimistisch, was meine Zukunft angeht.",
+            "Ich kann meine Emotionen gut regulieren, auch in stressigen Situationen."
+        ]
+        
+        answers = {}
+        for i, question in enumerate(questions):
+            col1, col2 = st.columns([4, 1])
+            with col1:
+                st.write(question)
+            with col2:
+                answers[i] = st.selectbox(
+                    "Rating",
+                    options=[1, 2, 3, 4, 5],
+                    index=st.session_state.resilience_answers.get(i, 2),
+                    key=f"q_{i}",
+                    format_func=lambda x: f"{x} / 5"
+                )
+        
+        st.session_state.resilience_answers = answers
+        
+        if st.button("Ergebnis analysieren"):
+            st.session_state.resilience_score = sum(answers.values())
+            
+            # Zeige Spinner, während die Analyse läuft
+            with st.spinner('Analysiere dein Ergebnis...'):
+                prompt = (
+                    f"Basierend auf einem Resilienz-Fragebogen mit 5 Fragen (1=stimme gar nicht zu, 5=stimme voll zu) hat ein Nutzer einen Gesamtscore von {st.session_state.resilience_score} erreicht. "
+                    f"Die maximale Punktzahl ist 25. Generiere eine personalisierte, aufmunternde Analyse, die erklärt, was der Score bedeutet. "
+                    f"Gib auch konkrete Vorschläge, wie man die Resilienz weiter stärken kann. Verwende eine freundliche, motivierende Sprache. "
+                    f"Beginne direkt mit der Analyse, ohne eine Einleitung."
+                )
+                
+                # Rufe die LLM-API auf
+                llm_response = call_llm_api_with_backoff(prompt)
+                
+                if llm_response:
+                    try:
+                        analysis_text = llm_response['candidates'][0]['content']['parts'][0]['text']
+                        st.session_state.resilience_analysis = analysis_text
+                    except (KeyError, IndexError):
+                        st.session_state.resilience_analysis = "Es gab ein Problem bei der Analyse. Bitte versuche es später noch einmal."
+            
+            st.experimental_rerun()
+            
+        if st.session_state.resilience_analysis:
+            st.subheader("Deine persönliche Analyse")
+            st.info(st.session_state.resilience_analysis)
+            st.markdown(f"**Dein Gesamtscore:** {st.session_state.resilience_score} von 25 Punkten.")
+            st.markdown("---")
+            st.button("Fragebogen zurücksetzen", on_click=reset_app)
+
+    with tab2:
+        st.header("Interaktive Resilienz-Pfade")
+        if st.session_state.show_path_screen:
+            render_path_screen()
+        else:
+            # Pfad-Auswahl-Ansicht
+            st.markdown("### Wähle deinen Pfad")
+            
+            # Einspaltiges Layout für die Karten
+            col_stress, col_self_image = st.columns(2)
+            with col_stress:
+                st.markdown("""
+                <div class="path-card-container" data-path="stress" style="background-color: #f0f0f0; border-radius: 12px; padding: 20px; text-align: center;">
+                    <h4>Stressabbau</h4>
+                    <p>Finden Sie innere Ruhe durch geführte Meditationen und Atemübungen.</p>
+                </div>
+                """, unsafe_allow_html=True)
+            with col_self_image:
+                st.markdown("""
+                <div class="path-card-container" data-path="self-image" style="background-color: #f0f0f0; border-radius: 12px; padding: 20px; text-align: center;">
+                    <h4>Selbstbild stärken</h4>
+                    <p>Stärken Sie Ihr Selbstwertgefühl und Ihre Selbstwirksamkeit.</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            col_efficacy, col_connectedness = st.columns(2)
+            with col_efficacy:
+                st.markdown("""
+                <div class="path-card-container" data-path="self-efficacy" style="background-color: #f0f0f0; border-radius: 12px; padding: 20px; text-align: center;">
+                    <h4>Selbstwirksamkeitserwartung</h4>
+                    <p>Entwickeln Sie das Vertrauen, Ihre Ziele erfolgreich zu meistern.</p>
+                </div>
+                """, unsafe_allow_html=True)
+            with col_connectedness:
+                st.markdown("""
+                <div class="path-card-container" data-path="connectedness" style="background-color: #f0f0f0; border-radius: 12px; padding: 20px; text-align: center;">
+                    <h4>Verbundenheit</h4>
+                    <p>Stärken Sie Ihre Beziehungen und Ihre Verbindung zu anderen.</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            # JavaScript für Klick-Events auf den Karten
+            st.markdown("""
+                <script>
+                    const cards = window.parent.document.querySelectorAll('.path-card-container');
+                    cards.forEach(card => {
+                        card.onclick = () => {
+                            const pathName = card.getAttribute('data-path');
+                            window.parent.document.querySelector('[data-testid="stForm"]').querySelector('input[type="hidden"]').value = pathName;
+                            window.parent.document.querySelector('[data-testid="stForm"]').querySelector('button').click();
+                        };
+                    });
+                </script>
+            """, unsafe_allow_html=True)
+
+            if st.button("Pfad starten (interner Button, nicht anzeigen)", key="start_path_btn"):
+                st.session_state.current_path = paths[st.session_state.start_path_btn]
+                st.session_state.current_stage_index = 0
+                st.session_state.show_path_screen = True
+                st.experimental_rerun()
+            
+def render_path_screen():
+    path_data = st.session_state.current_path
     
-    st.markdown("""
-    **3. Sinn finden:**
-    Suchen Sie nach Wegen, wie Sie Ihren Alltag als sinnvoller empfinden können, z.B. indem Sie Ihre Arbeit mit Ihren persönlichen Werten verknüpfen.
-    """)
-    if st.button("Zurück zur Startseite"):
-      next_page('start')
+    st.markdown(f"### {path_data['title']}")
+    st.markdown(f"_{path_data['description']}_")
+    
+    # Fortschrittsbalken
+    progress = (st.session_state.current_stage_index + 1) / len(path_data['stages'])
+    st.progress(progress)
+    
+    # Aktueller Schritt
+    current_stage = path_data['stages'][st.session_state.current_stage_index]
+    
+    st.subheader(f"Schritt {st.session_state.current_stage_index + 1}: {current_stage['title']}")
+    st.markdown(current_stage['description'])
+    
+    # Expertentipp
+    st.info(f"**Expertentipp:** {random.choice(path_data['tips'])}")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Zurück zur Pfad-Auswahl"):
+            st.session_state.show_path_screen = False
+            st.experimental_rerun()
+    with col2:
+        if st.button("Nächster Schritt"):
+            if st.session_state.current_stage_index < len(path_data['stages']) - 1:
+                st.session_state.current_stage_index += 1
+                st.experimental_rerun()
+            else:
+                st.success("Herzlichen Glückwunsch! Sie haben diesen Pfad abgeschlossen.")
+                st.session_state.show_path_screen = False
+                st.session_state.current_path = None
+                st.experimental_rerun()
 
 
 def render_step_1():
@@ -501,7 +616,7 @@ def render_step_3():
     with st.container():
         # Der Rote Hut
         st.markdown("#### Dein Bauchgefühl (Der 'Rote Hut' von Edward de Bono)")
-        st.markdown("Schreibe auf, welche Gefühle und intuitiven Gedanken du zu den Optionen hast. Es geht nicht um Logik, sondern um Emotionen.")
+        st.markdown("Schreibe auf, welche Gefühle und intuitive Gedanken du zu den Optionen hast. Es geht nicht um Logik, sondern um Emotionen.")
         st.session_state.emotions = st.text_area("Deine Gedanken:", value=st.session_state.emotions, height=150)
     
     selected_content = category_content.get(st.session_state.problem_category, {})
@@ -667,54 +782,6 @@ def render_step_5():
 
     st.button("Neue Entscheidungsreise starten", on_click=reset_app)
 
-def render_resilience_questions_page():
-    st.title("Resilienz-Fragebogen")
-    st.markdown("Bewerte auf einer Skala von **1 (stimme gar nicht zu)** bis **5 (stimme voll und ganz zu)**, wie sehr die folgenden Aussagen auf dich zutreffen.")
-
-    # Fragen rendern und Antworten speichern
-    for i, question in enumerate(resilience_questions):
-        st.session_state.resilience_answers[i] = st.slider(
-            question,
-            1, 5, st.session_state.resilience_answers.get(i, 3), key=f"resilience_q_{i}"
-        )
-
-    # Weiter-Button zum Anzeigen der Ergebnisse
-    if st.button("Fragebogen abschließen"):
-        # Ladeanzeige, bevor die Seite wechselt
-        with st.spinner("Deine Punktzahl wird berechnet... bitte habe einen kleinen Moment Geduld."):
-            time.sleep(1) # Simulation einer kurzen Ladezeit
-            # Berechne die Gesamtpunktzahl
-            st.session_state.resilience_score = sum(st.session_state.resilience_answers.values())
-        
-        # Wechsle zur Ergebnisseite
-        next_page('resilience_results')
-
-def render_resilience_results_page():
-    st.title("Deine Resilienz-Analyse")
-# NEUE ZEILE: Der Disclaimer wurde hier hinzugefügt
-    st.warning("Disclaimer: Dieser Fragebogen ist ein nicht-klinisches Werkzeug zur Selbsterkenntnis und ersetzt keine professionelle psychologische Beratung.")
-    
-    if st.session_state.resilience_score is None:
-        st.warning("Bitte fülle zuerst den Fragebogen aus.")
-        if st.button("Zum Fragebogen zurückkehren"):
-            next_page('wert_reflexion')
-        return
-
-    # Gesamtergebnis anzeigen
-    total_score = st.session_state.resilience_score
-    max_score = len(resilience_questions) * 5
-    st.markdown(f"**Deine Gesamtpunktzahl:** **{total_score}** von **{max_score}**")
-    
-    # Nutze die vorab definierte Analyse
-    st.session_state.resilience_analysis = get_canned_analysis(total_score, max_score)
-    
-    # Zeige die Analyse an
-    if st.session_state.resilience_analysis:
-        st.markdown(st.session_state.resilience_analysis, unsafe_allow_html=True)
-
-    if st.button("Neue Reflexion starten"):
-        reset_app()
-
 
 def render_bottom_nav():
     # Render a fixed bottom navigation bar using HTML and CSS
@@ -726,7 +793,7 @@ def render_bottom_nav():
         <a href="?page=step_1" class="nav-item {'active' if st.session_state.page in ['step_1', 'step_2', 'step_3', 'step_4', 'step_5'] else ''}">
             <span class="icon">🧠</span> Decide
         </a>
-        <a href="?page=wert_reflexion" class="nav-item {'active' if st.session_state.page in ['wert_reflexion', 'resilience_results'] else ''}">
+        <a href="?page=wert_reflexion" class="nav-item {'active' if st.session_state.page in ['wert_reflexion'] else ''}">
             <span class="icon">🧘</span> Reflect
         </a>
     </div>
@@ -751,9 +818,7 @@ def main():
     elif st.session_state.page == 'step_5':
         render_step_5()
     elif st.session_state.page == 'wert_reflexion':
-        render_resilience_questions_page() # Der neue interaktive Fragebogen
-    elif st.session_state.page == 'resilience_results':
-        render_resilience_results_page() # Die neue Ergebnisseite
+        render_wert_reflexion_page()
     
     # Die untere Navigationsleiste wird auf allen Seiten außer der Startseite angezeigt
     if st.session_state.page not in ['start']:
