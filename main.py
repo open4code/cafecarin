@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-# Python script for a Streamlit application with two distinct modules.
+# Python script for a Streamlit application with three distinct modules.
 # Module 1: A "Decision Journey" tool that helps analyze pros and cons.
 # Module 2: A "Resilience Reflection" guide based on user input.
+# Module 3: A set of interactive "Health Paths".
 
 import streamlit as st
 import altair as alt
@@ -19,10 +20,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Das CSS wurde komplett neu geschrieben, um das Layout aus dem Bild zu replizieren
+# The CSS has been completely rewritten to replicate the layout from the image.
 custom_css = """
 <style>
-    /* Allgemeine Farbpalette und Schriftart */
+    /* General color palette and font */
     :root {
         --primary-color: #E2B060;
         --secondary-color: #F8D8C9;
@@ -41,7 +42,7 @@ custom_css = """
         background-color: var(--background-color);
     }
 
-    /* Styling für alle Container und Expander (die "Karten") */
+    /* Styling for all containers and expanders (the "cards") */
     div[data-testid="stVerticalBlock"] > div.st-emotion-cache-1r6y9j9,
     div[data-testid="stVerticalBlock"] > div.st-emotion-cache-1n1p067,
     .stTabs [role="tablist"] button[aria-selected="true"] {
@@ -57,7 +58,7 @@ custom_css = """
         padding: 0;
     }
 
-    /* Styling für Überschriften */
+    /* Styling for headings */
     h1, h2, h3, h4, h5, h6 {
         color: var(--text-color);
         font-weight: 600;
@@ -73,7 +74,7 @@ custom_css = """
         padding: 10px;
     }
 
-    /* Styling für Buttons */
+    /* Styling for buttons */
     .stButton > button {
         background-color: var(--primary-color);
         color: white;
@@ -91,7 +92,7 @@ custom_css = """
       gap: 20px;
     }
 
-    /* Spezielles Styling für Textbereiche und Eingabefelder (Farbhintergrund) */
+    /* Specific styling for text areas and input fields (colored background) */
     .st-emotion-cache-13gs647, .st-emotion-cache-1cpx9g8, .st-emotion-cache-13v2p5x, .st-emotion-cache-1l006n6 {
         background-color: var(--secondary-color) !important;
         color: var(--text-color);
@@ -100,7 +101,7 @@ custom_css = """
         padding: 10px;
     }
 
-    /* Styling für Schieberegler (Slider) */
+    /* Styling for sliders */
     .st-emotion-cache-14u43s4 {
         background-color: var(--secondary-color);
         border-radius: 10px;
@@ -116,7 +117,7 @@ custom_css = """
         background-color: var(--primary-color); /* Slider fill */
     }
 
-    /* Styling für die untere Navigationsleiste */
+    /* Styling for the bottom navigation bar */
     .bottom-nav {
         position: fixed;
         bottom: 0;
@@ -151,13 +152,33 @@ custom_css = """
         font-size: 24px;
         margin-bottom: 4px;
     }
+
+    /* Card styling for path selection */
+    .path-card-container {
+        background-color: #f0f0f0; 
+        border-radius: 12px; 
+        padding: 20px; 
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #ddd;
+    }
+
+    .path-card-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .path-card-container h4 {
+        color: var(--primary-color);
+    }
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
 
-# --- Konfiguration für LLM API (NICHT ÄNDERN) ---
-# Der API-Schlüssel wird von der Laufzeitumgebung bereitgestellt.
+# --- Configuration for LLM API (DO NOT CHANGE) ---
+# The API key is provided by the runtime environment.
 API_KEY = ""
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + API_KEY
 API_HEADERS = {'Content-Type': 'application/json'}
@@ -211,7 +232,7 @@ def call_llm_api_with_backoff(prompt, max_retries=5, initial_delay=1):
     st.error("Maximum retries reached. The API call failed.")
     return None
 
-# --- 2. ZUSTAND DER APP VERWALTEN (SESSION STATE) ---
+# --- 2. MANAGING APP STATE (SESSION STATE) ---
 def init_session_state():
     if 'page' not in st.session_state: st.session_state.page = 'start'
     if 'problem' not in st.session_state: st.session_state.problem = ""
@@ -229,13 +250,13 @@ def init_session_state():
     if 'future_scenario_b' not in st.session_state: st.session_state.future_scenario_b = ""
     if 'first_step' not in st.session_state: st.session_state.first_step = ""
     
-    # Zustand für den Fragebogen zur Resilienz
+    # State for the resilience questionnaire
     if 'resilience_answers' not in st.session_state: st.session_state.resilience_answers = {}
     if 'resilience_score' not in st.session_state: st.session_state.resilience_score = None
     if 'resilience_analysis' not in st.session_state: st.session_state.resilience_analysis = None
     if 'processing_analysis' not in st.session_state: st.session_state.processing_analysis = False
     
-    # Zustand für die Resilienz-Pfade
+    # State for resilience paths
     if 'current_path' not in st.session_state: st.session_state.current_path = None
     if 'current_stage_index' not in st.session_state: st.session_state.current_stage_index = 0
     if 'show_path_screen' not in st.session_state: st.session_state.show_path_screen = False
@@ -248,50 +269,51 @@ def next_page(page_name):
 def reset_app():
     st.session_state.clear()
     init_session_state()
+    st.experimental_rerun()
 
-# --- 3. DYNAMISCHE INHALTE FÜR JEDE KATEGORIE ---
+# --- 3. DYNAMIC CONTENT FOR EACH CATEGORY ---
 category_content = {
     "Karriere & Beruf": {
         "values": ["Finanzielle Sicherheit", "Wachstum", "Autonomie", "Einfluss", "Anerkennung", "Work-Life-Balance"],
         "cognitive_biases": {
-            "title": "Häufige Denkfehler in der Karriere",
+            "title": "Common Career Thinking Errors",
             "biases": [
-                ("Verlustaversion", "Konzentriere ich mich mehr auf das, was ich im aktuellen Job verlieren könnte, als auf das, was ich im neuen gewinnen könnte?"),
-                ("Ankereffekt", "Hänge ich zu sehr am ersten Gehaltsangebot oder einer ersten Beförderung fest, die ich erhalten habe, und hindert mich das daran, eine bessere Gelegenheit zu erkennen?"),
-                ("Bestätigungsfehler", "Suche ich nur nach Informationen, die meine Entscheidung für oder gegen einen Job bestätigen, und ignoriere ich gegenteilige Informationen?")
+                ("Loss Aversion", "Am I focusing more on what I could lose in my current job than on what I could gain in the new one?"),
+                ("Anchoring Effect", "Am I too fixated on the first salary offer or promotion I received, which is preventing me from seeing a better opportunity?"),
+                ("Confirmation Bias", "Am I only looking for information that confirms my decision for or against a job, and ignoring contrary information?")
             ]
         },
     },
     "Persönliches Wachstum": {
         "values": ["Selbstverwirklichung", "Kreativität", "Lernen", "Soziale Bindungen", "Entwicklung", "Freiheit"],
         "cognitive_biases": {
-            "title": "Häufige Denkfehler bei persönlichem Wachstum",
+            "title": "Common Thinking Errors in Personal Growth",
             "biases": [
-                ("Status-quo-Verzerrung", "Ziehe ich die einfache Option vor, weil ich Angst vor Veränderungen habe, auch wenn die neue Option mich wachsen lässt?"),
-                ("Bestätigungsfehler", "Suche ich nur nach Informationen, die meine Überzeugung bestätigen, dass eine neue Fähigkeit zu schwer zu erlernen ist?"),
-                ("Verfügbarkeitsheuristik", "Stütze ich meine Entscheidung nur auf leicht verfügbare, spektakuläre Geschichten, statt auf realistischere Fakten?")
+                ("Status Quo Bias", "Do I prefer the easy option because I'm afraid of change, even if the new option would help me grow?"),
+                ("Confirmation Bias", "Am I only looking for information that confirms my belief that a new skill is too hard to learn?"),
+                ("Availability Heuristic", "Am I basing my decision only on easily available, spectacular stories, rather than on more realistic facts?")
             ]
         },
     },
     "Beziehungen & Familie": {
         "values": ["Soziale Bindungen", "Harmonie", "Vertrauen", "Empathie", "Stabilität", "Zugehörigkeit"],
         "cognitive_biases": {
-            "title": "Häufige Denkfehler in Beziehungen",
+            "title": "Common Thinking Errors in Relationships",
             "biases": [
-                ("Rosinenpicken (Cherry Picking)", "Ignoriere ich alle negativen Aspekte und konzentriere ich mich nur auf die guten, um eine schwierige Situation zu vermeiden?"),
-                ("Irrglaube an versunkene Kosten (Sunk Cost Fallacy)", "Bleibe ich in einer Beziehung oder Situation, nur weil ich schon so viel Zeit und Energie investiert habe, anstatt nach vorne zu schauen?"),
-                ("Bestätigungsfehler", "Höre ich nur auf Freunde, die meine Meinung teilen, und vermeide ich Gespräche, die mich herausfordern?")
+                ("Cherry Picking", "Am I ignoring all the negative aspects and only focusing on the good ones to avoid a difficult situation?"),
+                ("Sunk Cost Fallacy", "Am I staying in a relationship or situation just because I've already invested so much time and energy, instead of looking ahead?"),
+                ("Confirmation Bias", "Do I only listen to friends who share my opinion and avoid conversations that challenge me?")
             ]
         },
     }
 }
 
 
-# Daten für die verschiedenen Resilienz-Pfade
+# Data for the different resilience paths
 paths = {
     'stress': {
         'title': 'Stressabbau',
-        'description': 'Finden Sie innere Ruhe durch geführte Meditationen und Atemübungen.',
+        'description': 'Find inner peace through guided meditations and breathing exercises.',
         'stages': [
             {'title': 'Atemübungen', 'description': 'Beginnen Sie mit einer einfachen Atemübung, um zur Ruhe zu kommen.'},
             {'title': 'Geführte Meditation', 'description': 'Hören Sie sich eine kurze geführte Meditation an, um Ihren Geist zu klären.'},
@@ -319,7 +341,7 @@ paths = {
     },
     'self-efficacy': {
         'title': 'Selbstwirksamkeitserwartung',
-        'description': 'Entwickeln Sie das Vertrauen, Ihre Ziele erfolgreich zu meistern.',
+        'description': 'Develop the confidence to successfully master your goals.',
         'stages': [
             {'title': 'Kleine Ziele setzen', 'description': 'Wählen Sie ein kleines, leicht erreichbares Ziel und erreichen Sie es.'},
             {'title': 'Lernkurve erkennen', 'description': 'Betrachten Sie Misserfolge als Lernchancen, nicht als Rückschläge.'},
@@ -333,7 +355,7 @@ paths = {
     },
     'connectedness': {
         'title': 'Verbundenheit',
-        'description': 'Stärken Sie Ihre Beziehungen und Ihre Verbindung zu anderen.',
+        'description': 'Strengthen your relationships and your connection to others.',
         'stages': [
             {'title': 'Kontakt aufnehmen', 'description': 'Schreiben Sie einer Person, die Ihnen wichtig ist, eine kurze Nachricht.'},
             {'title': 'Zuhören', 'description': 'Üben Sie aktives Zuhören in einem Gespräch.'},
@@ -349,34 +371,49 @@ paths = {
 
 
 def render_start_page():
-    # Haupt-Container für die Startseite
+    # Main container for the start page
     with st.container():
         st.title("VitaBoost")
         st.image("https://placehold.co/1200x400/FFF8E1/E2B060?text=Stärke+deine+Entscheidungen%2C+stärke+dein+Leben")
         st.markdown("Stärke deine Entscheidungen, stärke dein Leben. Wähle den passenden Pfad für deine Situation.")
 
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             st.markdown("### Entscheidungsreise")
             st.markdown("Strukturiere deine Gedanken und Gefühle, um eine fundierte Entscheidung zu treffen.")
             st.button("Starte die Entscheidungsreise", on_click=next_page, args=['step_1'])
 
         with col2:
-            st.markdown("### Werte-Reflexion")
-            st.markdown("Du steckst gerade in einer Krise? Stärke deine Resilienzfaktoren, um zukünftige Krisen gut bewältigen zu können.")
-            st.button("Starte die Werte-Reflexion", on_click=next_page, args=['wert_reflexion'])
+            st.markdown("### Resilienz-Test")
+            st.markdown("Teste deine Widerstandsfähigkeit und stärke die Faktoren, die dich widerstandsfähig machen.")
+            if st.button("Starte den Resilienz-Test"):
+                st.query_params['page'] = 'wert_reflexion'
+                st.query_params['tab'] = 'questionnaire'
+                st.experimental_rerun()
+
+        with col3:
+            st.markdown("### Gesundheitspfade")
+            st.markdown("Du steckst gerade in einer Krise? Stärke deine Resilienzfaktoren, um zukünftige Krisen gut zu bewältigen.")
+            if st.button("Starte die Pfade"):
+                st.query_params['page'] = 'wert_reflexion'
+                st.query_params['tab'] = 'paths'
+                st.experimental_rerun()
 
 
 def render_wert_reflexion_page():
     st.title("Werte-Reflexion & Resilienz")
     
-    tab1, tab2 = st.tabs(["Resilienz-Fragebogen", "Interaktive Pfade"])
+    # Get the active tab from query parameters, default to "questionnaire"
+    active_tab = st.query_params.get('tab', ['questionnaire'])[0]
     
+    # Create the tabs
+    tab1, tab2 = st.tabs(["Resilienz-Fragebogen", "Interaktive Pfade"])
+
     with tab1:
         st.header("Wie steht es um deine Resilienz?")
         st.markdown("Beantworte die folgenden Fragen, um eine erste Einschätzung deiner Widerstandsfähigkeit zu erhalten.")
         
-        # Fragen für den Fragebogen
+        # Questions for the questionnaire
         questions = [
             "Ich kann mich gut von Rückschlägen erholen.",
             "Ich habe ein starkes soziales Netzwerk, auf das ich mich verlassen kann.",
@@ -404,16 +441,16 @@ def render_wert_reflexion_page():
         if st.button("Ergebnis analysieren"):
             st.session_state.resilience_score = sum(answers.values())
             
-            # Zeige Spinner, während die Analyse läuft
+            # Show a spinner while analysis is running
             with st.spinner('Analysiere dein Ergebnis...'):
                 prompt = (
-                    f"Basierend auf einem Resilienz-Fragebogen mit 5 Fragen (1=stimme gar nicht zu, 5=stimme voll zu) hat ein Nutzer einen Gesamtscore von {st.session_state.resilience_score} erreicht. "
-                    f"Die maximale Punktzahl ist 25. Generiere eine personalisierte, aufmunternde Analyse, die erklärt, was der Score bedeutet. "
-                    f"Gib auch konkrete Vorschläge, wie man die Resilienz weiter stärken kann. Verwende eine freundliche, motivierende Sprache. "
-                    f"Beginne direkt mit der Analyse, ohne eine Einleitung."
+                    f"Based on a resilience questionnaire with 5 questions (1=strongly disagree, 5=strongly agree), a user achieved a total score of {st.session_state.resilience_score}. "
+                    f"The maximum score is 25. Generate a personalized, encouraging analysis that explains what the score means. "
+                    f"Also provide concrete suggestions on how to further strengthen resilience. Use friendly, motivating language. "
+                    f"Begin directly with the analysis, without an introduction."
                 )
                 
-                # Rufe die LLM-API auf
+                # Call the LLM API
                 llm_response = call_llm_api_with_backoff(prompt)
                 
                 if llm_response:
@@ -421,7 +458,7 @@ def render_wert_reflexion_page():
                         analysis_text = llm_response['candidates'][0]['content']['parts'][0]['text']
                         st.session_state.resilience_analysis = analysis_text
                     except (KeyError, IndexError):
-                        st.session_state.resilience_analysis = "Es gab ein Problem bei der Analyse. Bitte versuche es später noch einmal."
+                        st.session_state.resilience_analysis = "There was a problem with the analysis. Please try again later."
             
             st.experimental_rerun()
             
@@ -437,61 +474,68 @@ def render_wert_reflexion_page():
         if st.session_state.show_path_screen:
             render_path_screen()
         else:
-            # Pfad-Auswahl-Ansicht
+            # Path selection view
             st.markdown("### Wähle deinen Pfad")
             
-            # Einspaltiges Layout für die Karten
-            col_stress, col_self_image = st.columns(2)
-            with col_stress:
-                st.markdown("""
-                <div class="path-card-container" data-path="stress" style="background-color: #f0f0f0; border-radius: 12px; padding: 20px; text-align: center;">
-                    <h4>Stressabbau</h4>
-                    <p>Finden Sie innere Ruhe durch geführte Meditationen und Atemübungen.</p>
-                </div>
-                """, unsafe_allow_html=True)
-            with col_self_image:
-                st.markdown("""
-                <div class="path-card-container" data-path="self-image" style="background-color: #f0f0f0; border-radius: 12px; padding: 20px; text-align: center;">
-                    <h4>Selbstbild stärken</h4>
-                    <p>Stärken Sie Ihr Selbstwertgefühl und Ihre Selbstwirksamkeit.</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-            col_efficacy, col_connectedness = st.columns(2)
-            with col_efficacy:
-                st.markdown("""
-                <div class="path-card-container" data-path="self-efficacy" style="background-color: #f0f0f0; border-radius: 12px; padding: 20px; text-align: center;">
-                    <h4>Selbstwirksamkeitserwartung</h4>
-                    <p>Entwickeln Sie das Vertrauen, Ihre Ziele erfolgreich zu meistern.</p>
-                </div>
-                """, unsafe_allow_html=True)
-            with col_connectedness:
-                st.markdown("""
-                <div class="path-card-container" data-path="connectedness" style="background-color: #f0f0f0; border-radius: 12px; padding: 20px; text-align: center;">
-                    <h4>Verbundenheit</h4>
-                    <p>Stärken Sie Ihre Beziehungen und Ihre Verbindung zu anderen.</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-            # JavaScript für Klick-Events auf den Karten
-            st.markdown("""
-                <script>
-                    const cards = window.parent.document.querySelectorAll('.path-card-container');
-                    cards.forEach(card => {
-                        card.onclick = () => {
-                            const pathName = card.getAttribute('data-path');
-                            window.parent.document.querySelector('[data-testid="stForm"]').querySelector('input[type="hidden"]').value = pathName;
-                            window.parent.document.querySelector('[data-testid="stForm"]').querySelector('button').click();
-                        };
-                    });
-                </script>
-            """, unsafe_allow_html=True)
-
-            if st.button("Pfad starten (interner Button, nicht anzeigen)", key="start_path_btn"):
-                st.session_state.current_path = paths[st.session_state.start_path_btn]
+            def start_path(path_key):
+                st.session_state.current_path = paths[path_key]
                 st.session_state.current_stage_index = 0
                 st.session_state.show_path_screen = True
                 st.experimental_rerun()
+
+            col_stress, col_self_image = st.columns(2)
+            with col_stress:
+                st.markdown(
+                    f"""
+                    <div class="path-card-container">
+                        <h4>{paths['stress']['title']}</h4>
+                        <p>{paths['stress']['description']}</p>
+                    </div>
+                    """, 
+                    unsafe_allow_html=True
+                )
+                if st.button("Starten", key="start_stress"):
+                    start_path('stress')
+            
+            with col_self_image:
+                st.markdown(
+                    f"""
+                    <div class="path-card-container">
+                        <h4>{paths['self-image']['title']}</h4>
+                        <p>{paths['self-image']['description']}</p>
+                    </div>
+                    """, 
+                    unsafe_allow_html=True
+                )
+                if st.button("Starten", key="start_self_image"):
+                    start_path('self-image')
+
+            col_efficacy, col_connectedness = st.columns(2)
+            with col_efficacy:
+                st.markdown(
+                    f"""
+                    <div class="path-card-container">
+                        <h4>{paths['self-efficacy']['title']}</h4>
+                        <p>{paths['self-efficacy']['description']}</p>
+                    </div>
+                    """, 
+                    unsafe_allow_html=True
+                )
+                if st.button("Starten", key="start_self_efficacy"):
+                    start_path('self-efficacy')
+
+            with col_connectedness:
+                st.markdown(
+                    f"""
+                    <div class="path-card-container">
+                        <h4>{paths['connectedness']['title']}</h4>
+                        <p>{paths['connectedness']['description']}</p>
+                    </div>
+                    """, 
+                    unsafe_allow_html=True
+                )
+                if st.button("Starten", key="start_connectedness"):
+                    start_path('connectedness')
             
 def render_path_screen():
     path_data = st.session_state.current_path
@@ -499,17 +543,17 @@ def render_path_screen():
     st.markdown(f"### {path_data['title']}")
     st.markdown(f"_{path_data['description']}_")
     
-    # Fortschrittsbalken
+    # Progress bar
     progress = (st.session_state.current_stage_index + 1) / len(path_data['stages'])
     st.progress(progress)
     
-    # Aktueller Schritt
+    # Current stage
     current_stage = path_data['stages'][st.session_state.current_stage_index]
     
     st.subheader(f"Schritt {st.session_state.current_stage_index + 1}: {current_stage['title']}")
     st.markdown(current_stage['description'])
     
-    # Expertentipp
+    # Expert tip
     st.info(f"**Expertentipp:** {random.choice(path_data['tips'])}")
     
     col1, col2 = st.columns(2)
@@ -532,7 +576,7 @@ def render_path_screen():
 def render_step_1():
     st.title("Step 1: Dein Problem & deine Optionen")
     
-    # 1. Container für Problem und Kategorie (jetzt an erster Stelle)
+    # 1. Container for problem and category (now in the first place)
     with st.container():
         st.markdown("#### Problem und Kategorie")
         st.session_state.problem = st.text_area(
@@ -553,7 +597,7 @@ def render_step_1():
             index=current_index
         )
     
-    # 2. Container für die Optionen
+    # 2. Container for the options
     with st.container():
         st.markdown("#### Optionen")
         col1, col2 = st.columns(2)
@@ -573,18 +617,18 @@ def render_step_2():
     
     with st.container():
         st.markdown(f"#### Psychologische Werte")
-        # Korrigierte Zeile zur korrekten Anzeige des Kategorienamens
+        # Corrected line to display the category name correctly
         st.markdown(f"Wähle alle Werte aus, die für deine Entscheidung in der Kategorie **{selected_category}** relevant sind.")
         
-        # Leere die Liste der ausgewählten Werte, bevor die Checkboxen gerendert werden, um den Zustand korrekt zu aktualisieren
+        # Clear the list of selected values before the checkboxes are rendered to update the state correctly
         st.session_state.selected_values = []
-        cols = st.columns(3) # Erstellt 3 Spalten für die Kontrollkästchen
+        cols = st.columns(3) # Creates 3 columns for the checkboxes
         for i, value in enumerate(all_values):
-            col = cols[i % 3] # Verteilt die Checkboxen auf die Spalten
+            col = cols[i % 3] # Distributes the checkboxes across the columns
             if col.checkbox(value, key=f"checkbox_{value}"):
                 st.session_state.selected_values.append(value)
 
-    # Die Schieberegler werden nur angezeigt, wenn Werte ausgewählt wurden
+    # Sliders are only displayed if values have been selected
     if st.session_state.selected_values:
         with st.container():
             st.markdown("#### Werte-Bewertung (Deine Entscheidungsmatrix)")
@@ -605,7 +649,7 @@ def render_step_2():
                     )
 
     if st.button("Weiter"):
-        # Führe eine abschließende Überprüfung durch
+        # Perform a final check
         if not st.session_state.selected_values:
             st.warning("Bitte wähle mindestens einen Wert aus, bevor du fortfährst.")
         else:
@@ -614,7 +658,7 @@ def render_step_2():
 def render_step_3():
     st.title("Step 3: Emotionen & Denkfehler")
     with st.container():
-        # Der Rote Hut
+        # The Red Hat
         st.markdown("#### Dein Bauchgefühl (Der 'Rote Hut' von Edward de Bono)")
         st.markdown("Schreibe auf, welche Gefühle und intuitive Gedanken du zu den Optionen hast. Es geht nicht um Logik, sondern um Emotionen.")
         st.session_state.emotions = st.text_area("Deine Gedanken:", value=st.session_state.emotions, height=150)
@@ -629,14 +673,14 @@ def render_step_3():
                 with st.expander(f"**{bias_title}**"):
                     st.markdown(bias_question)
 
-    # Die "Weiter" Schaltfläche wurde hierher verschoben, um erst nach den Expandern zu erscheinen.
+    # The "Continue" button has been moved here to appear after the expanders.
     if st.button("Weiter"):
         next_page('step_4')
 
 def render_step_4():
     st.title("Step 4: Pro/Contra & Zukunft")
     
-    # Der Gelbe und Schwarze Hut
+    # The Yellow and Black Hat
     with st.container():
         st.markdown(f"#### Vorteile (Der 'Gelbe Hut' von Edward de Bono)")
         st.session_state.pro_a = st.text_area(
@@ -663,7 +707,7 @@ def render_step_4():
             key="contra_b_area", height=150
         )
         
-    # Der Grüne Hut
+    # The Green Hat
     with st.container():
         st.markdown("#### Kreative Optionen (Der 'Grüne Hut' von Edward de Bono)")
         st.markdown("Gibt es noch andere, unkonventionelle Optionen, die du bisher nicht in Betracht gezogen hast? Schreibe sie hier auf.")
@@ -739,7 +783,7 @@ def render_step_5():
                 with cols[0]:
                     st.altair_chart(chart, use_container_width=True)         
                 
-                # Anzeige der Gesamtpunktzahl
+                # Display the total score
                 st.write(f"**Gesamtpunktzahl Option A:** {score_a}")
                 st.write(f"**Gesamtpunktzahl Option B:** {score_b}")
 
@@ -785,16 +829,25 @@ def render_step_5():
 
 def render_bottom_nav():
     # Render a fixed bottom navigation bar using HTML and CSS
+    # Check if a tab is active in the query parameters
+    current_tab = st.query_params.get('tab', ['questionnaire'])[0]
+    
+    # Check if a page is active in the query parameters
+    current_page = st.query_params.get('page', ['start'])[0]
+
     nav_html = f"""
     <div class="bottom-nav">
-        <a href="?page=start" class="nav-item {'active' if st.session_state.page == 'start' else ''}">
+        <a href="?page=start" class="nav-item {'active' if current_page == 'start' else ''}">
             <span class="icon">🏠</span> Home
         </a>
-        <a href="?page=step_1" class="nav-item {'active' if st.session_state.page in ['step_1', 'step_2', 'step_3', 'step_4', 'step_5'] else ''}">
-            <span class="icon">🧠</span> Decide
+        <a href="?page=step_1" class="nav-item {'active' if current_page in ['step_1', 'step_2', 'step_3', 'step_4', 'step_5'] else ''}">
+            <span class="icon">🧠</span> Entscheiden
         </a>
-        <a href="?page=wert_reflexion" class="nav-item {'active' if st.session_state.page in ['wert_reflexion'] else ''}">
-            <span class="icon">🧘</span> Reflect
+        <a href="?page=wert_reflexion&tab=questionnaire" class="nav-item {'active' if current_page == 'wert_reflexion' and current_tab == 'questionnaire' else ''}">
+            <span class="icon">💡</span> Resilienz
+        </a>
+        <a href="?page=wert_reflexion&tab=paths" class="nav-item {'active' if current_page == 'wert_reflexion' and current_tab == 'paths' else ''}">
+            <span class="icon">🧘</span> Pfade
         </a>
     </div>
     """
@@ -802,8 +855,10 @@ def render_bottom_nav():
 
 def main():
     query_params = st.query_params
-    if 'page' in query_params:
-        st.session_state.page = query_params['page'][0]
+    
+    # Determine the current page from query parameters, default to 'start'
+    page = query_params.get('page', ['start'])[0]
+    st.session_state.page = page
 
     if st.session_state.page == 'start':
         render_start_page()
@@ -820,7 +875,7 @@ def main():
     elif st.session_state.page == 'wert_reflexion':
         render_wert_reflexion_page()
     
-    # Die untere Navigationsleiste wird auf allen Seiten außer der Startseite angezeigt
+    # The bottom navigation bar is displayed on all pages except the start page
     if st.session_state.page not in ['start']:
         render_bottom_nav()
 
