@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Python script for a Streamlit application with two distinct modules.
 # Module 1: A "Decision Journey" tool that helps analyze pros and cons.
-# Module 2: A "Value Reflection" guide based on user input.
+# Module 2: A "Resilience Reflection" guide based on user input.
 
 import streamlit as st
 import altair as alt
@@ -9,6 +9,7 @@ import pandas as pd
 import json
 import requests
 import time
+import base64
 
 # --- 1. SEITENKONFIGURATION & STYLING ---
 st.set_page_config(
@@ -98,6 +99,12 @@ custom_css = """
     }
     .st-emotion-cache-14u43s4 > div {
         background-color: var(--primary-color);
+    }
+    .stSlider > div > div > div:nth-child(2) {
+        background-color: var(--secondary-color); /* Slider track */
+    }
+    .stSlider > div > div > div:nth-child(2) > div:nth-child(1) {
+        background-color: var(--primary-color); /* Slider fill */
     }
 
     /* Styling für die untere Navigationsleiste */
@@ -214,6 +221,13 @@ def init_session_state():
     if 'future_scenario_a' not in st.session_state: st.session_state.future_scenario_a = ""
     if 'future_scenario_b' not in st.session_state: st.session_state.future_scenario_b = ""
     if 'first_step' not in st.session_state: st.session_state.first_step = ""
+    
+    # Neue Felder für den Resilienz-Fragebogen
+    if 'resilience_answers' not in st.session_state: st.session_state.resilience_answers = {}
+    if 'resilience_score' not in st.session_state: st.session_state.resilience_score = None
+    if 'resilience_analysis' not in st.session_state: st.session_state.resilience_analysis = None
+    if 'processing_analysis' not in st.session_state: st.session_state.processing_analysis = False
+
 
 init_session_state()
 
@@ -260,6 +274,17 @@ category_content = {
         },
     }
 }
+
+# Fragen für den Resilienz-Fragebogen
+resilience_questions = [
+    "Wenn ich vor einer Herausforderung stehe, glaube ich, dass ich die Situation bewältigen kann.", # Selbstwahrnehmung
+    "Ich habe mindestens eine enge Beziehung zu jemandem, der mich in schwierigen Zeiten unterstützt.", # Soziale Beziehungen
+    "Ich bin in der Lage, Probleme in kleinere, handhabbare Schritte zu unterteilen.", # Problemlösungskompetenz
+    "Ich kann mit schwierigen Gefühlen wie Angst oder Trauer umgehen, ohne dass sie mich überwältigen.", # Emotionsregulation
+    "Ich bin optimistisch, was meine Zukunft angeht und kann mir positive Entwicklungen vorstellen.", # Zukunftsorientierung
+    "Ich sorge aktiv für mein körperliches und geistiges Wohlbefinden (z.B. durch Bewegung, Entspannung oder Hobbys).", # Selbstfürsorge
+    "Ich kann auch in stressigen Situationen Sinn oder Bedeutung in meinen Handlungen finden." # Sinnorientierung
+]
 
 # --- 4. SEITEN-INHALT RENDERN ---
 
@@ -559,6 +584,70 @@ def render_step_5():
 
     st.button("Neue Entscheidungsreise starten", on_click=reset_app)
 
+def render_resilience_questions_page():
+    st.title("Resilienz-Fragebogen")
+    st.markdown("Bewerte auf einer Skala von **1 (stimme gar nicht zu)** bis **5 (stimme voll und ganz zu)**, wie sehr die folgenden Aussagen auf dich zutreffen.")
+
+    # Fragen rendern und Antworten speichern
+    for i, question in enumerate(resilience_questions):
+        st.session_state.resilience_answers[i] = st.slider(
+            question,
+            1, 5, st.session_state.resilience_answers.get(i, 3), key=f"resilience_q_{i}"
+        )
+
+    # Weiter-Button zum Anzeigen der Ergebnisse
+    if st.button("Fragebogen abschließen"):
+        # Berechne die Gesamtpunktzahl
+        st.session_state.resilience_score = sum(st.session_state.resilience_answers.values())
+        next_page('resilience_results')
+
+def render_resilience_results_page():
+    st.title("Deine Resilienz-Analyse")
+    
+    if st.session_state.resilience_score is None:
+        st.warning("Bitte fülle zuerst den Fragebogen aus.")
+        if st.button("Zum Fragebogen zurückkehren"):
+            next_page('wert_reflexion')
+        return
+
+    # Gesamtergebnis anzeigen
+    total_score = st.session_state.resilience_score
+    max_score = len(resilience_questions) * 5
+    st.markdown(f"**Deine Gesamtpunktzahl:** **{total_score}** von **{max_score}**")
+    
+    if st.session_state.resilience_analysis is None:
+        st.session_state.processing_analysis = True
+        
+        # Generiere die Analyse mit dem LLM
+        prompt = f"""
+        Basierend auf einer Gesamtpunktzahl von {total_score} von maximal {max_score} Punkten aus einem Resilienz-Fragebogen, erstelle eine personalisierte Analyse des Resilienz-Levels. Die Fragen bezogen sich auf Selbstwahrnehmung, soziale Beziehungen, Problemlösungskompetenz, Emotionsregulation, Zukunftsorientierung, Selbstfürsorge und Sinnorientierung.
+
+        Gib eine kurze Analyse aus, was die Punktzahl bedeutet, und liste dann 3 bis 5 konkrete, umsetzbare Tipps zur Verbesserung der Resilienz auf, die auf dem Punktwert basieren. Die Ausgabe muss auf Deutsch sein und in Markdown formatiert werden.
+        """
+        
+        with st.spinner("Deine Analyse wird erstellt..."):
+            response_json = call_llm_api_with_backoff(prompt)
+
+        if response_json:
+            try:
+                analysis_text = response_json['candidates'][0]['content']['parts'][0]['text']
+                st.session_state.resilience_analysis = analysis_text
+            except (KeyError, IndexError) as e:
+                st.error("Fehler beim Verarbeiten der LLM-Antwort. Bitte versuche es erneut.")
+                print(f"Error: {e}")
+                print(f"Response: {response_json}")
+        
+        st.session_state.processing_analysis = False
+        st.experimental_rerun()
+    
+    # Zeige die Analyse an
+    if st.session_state.resilience_analysis:
+        st.markdown(st.session_state.resilience_analysis, unsafe_allow_html=True)
+
+    if st.button("Neue Reflexion starten"):
+        reset_app()
+
+
 def render_bottom_nav():
     # Render a fixed bottom navigation bar using HTML and CSS
     nav_html = f"""
@@ -566,11 +655,11 @@ def render_bottom_nav():
         <a href="?page=start" class="nav-item {'active' if st.session_state.page == 'start' else ''}">
             <span class="icon">🏠</span> Home
         </a>
-        <a href="?page=step_1" class="nav-item {'active' if st.session_state.page == 'step_1' else ''}">
+        <a href="?page=step_1" class="nav-item {'active' if st.session_state.page in ['step_1', 'step_2', 'step_3', 'step_4', 'step_5'] else ''}">
             <span class="icon">🧠</span> Decide
         </a>
-        <a href="?page=step_5" class="nav-item {'active' if st.session_state.page == 'step_5' else ''}">
-            <span class="icon">📊</span> Summary
+        <a href="?page=wert_reflexion" class="nav-item {'active' if st.session_state.page in ['wert_reflexion', 'resilience_results'] else ''}">
+            <span class="icon">🧘</span> Reflect
         </a>
     </div>
     """
@@ -594,10 +683,12 @@ def main():
     elif st.session_state.page == 'step_5':
         render_step_5()
     elif st.session_state.page == 'wert_reflexion':
-        render_wert_reflexion_page()
+        render_resilience_questions_page() # Der neue interaktive Fragebogen
+    elif st.session_state.page == 'resilience_results':
+        render_resilience_results_page() # Die neue Ergebnisseite
     
-    # Die untere Navigationsleiste wird auf allen Seiten außer der Startseite und der Werte-Reflexion angezeigt
-    if st.session_state.page not in ['start', 'wert_reflexion']:
+    # Die untere Navigationsleiste wird auf allen Seiten außer der Startseite angezeigt
+    if st.session_state.page not in ['start']:
         render_bottom_nav()
 
 main()
