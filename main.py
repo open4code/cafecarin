@@ -385,7 +385,7 @@ def render_start_page():
 
         with col2:
             st.markdown("### Resilienz-Test")
-            st.markdown("Teste deine Widerstandsfähigkeit und stärke die Faktoren, die dich widerstandsfähig machen.")
+            st.markdown("„Du steckst gerade in einer Krise?“ Finden wir heraus was deine Resilienzfaktoren sein könnten um zukünftige Krisen gut bewältigen zu können.")
             if st.button("Starte den Resilienz-Test"):
                 st.query_params['page'] = 'wert_reflexion'
                 st.query_params['tab'] = 'questionnaire'
@@ -620,270 +620,196 @@ def render_step_1():
 def render_step_2():
     st.title("Step 2: Werte & Motivation")
     selected_category = st.session_state.problem_category
-    all_values = category_content.get(selected_category, {}).get("values", ["Sicherheit", "Freiheit", "Entwicklung"])
     
     with st.container():
-        st.markdown(f"#### Psychologische Werte")
-        # Corrected line to display the category name correctly
-        st.markdown(f"Wähle alle Werte aus, die für deine Entscheidung in der Kategorie **{selected_category}** relevant sind.")
+        st.markdown("#### Deine wichtigsten Werte")
         
-        # Clear the list of selected values before the checkboxes are rendered to update the state correctly
-        st.session_state.selected_values = []
-        cols = st.columns(3) # Creates 3 columns for the checkboxes
-        for i, value in enumerate(all_values):
-            col = cols[i % 3] # Distributes the checkboxes across the columns
-            if col.checkbox(value, key=f"checkbox_{value}"):
-                st.session_state.selected_values.append(value)
-
-    # Sliders are only displayed if values have been selected
-    if st.session_state.selected_values:
-        with st.container():
-            st.markdown("#### Werte-Bewertung (Deine Entscheidungsmatrix)")
-            st.markdown("Bewerte auf einer Skala von 1 bis 10, wie gut jede Option deine gewählten Werte erfüllt.")
-            st.markdown("Die Punktzahl, die du hier vergibst, **gewichtet** automatisch die Wichtigkeit der Werte für deine endgültige Entscheidung.")
+        if selected_category in category_content:
+            category_values = category_content[selected_category]['values']
+            st.markdown(f"Wähle 3 Werte aus der Kategorie **'{selected_category}'**, die für deine Entscheidung am wichtigsten sind.")
+            st.session_state.selected_values = st.multiselect(
+                "Wähle deine Werte:",
+                options=category_values,
+                default=st.session_state.selected_values,
+                max_selections=3
+            )
+        else:
+            st.warning("Bitte wähle im vorherigen Schritt eine Kategorie aus.")
+            
+        if st.session_state.selected_values:
+            st.markdown("Bewerte, wie gut die Optionen A und B diese Werte erfüllen (1 = überhaupt nicht, 5 = sehr gut).")
             for value in st.session_state.selected_values:
-                st.subheader(f"Wert: {value}")
+                st.markdown(f"**{value}**")
                 col_a, col_b = st.columns(2)
                 with col_a:
-                    st.session_state.values_rating[f"{value}_A"] = st.slider(
+                    st.session_state.values_rating[f'A_{value}'] = st.slider(
                         f"Option A: {st.session_state.options[0]}",
-                        0, 10, st.session_state.values_rating.get(f"{value}_A", 5), key=f"slider_a_{value}"
+                        min_value=1,
+                        max_value=5,
+                        value=st.session_state.values_rating.get(f'A_{value}', 3),
+                        key=f'slider_a_{value}'
                     )
                 with col_b:
-                    st.session_state.values_rating[f"{value}_B"] = st.slider(
+                    st.session_state.values_rating[f'B_{value}'] = st.slider(
                         f"Option B: {st.session_state.options[1]}",
-                        0, 10, st.session_state.values_rating.get(f"{value}_B", 5), key=f"slider_b_{value}"
+                        min_value=1,
+                        max_value=5,
+                        value=st.session_state.values_rating.get(f'B_{value}', 3),
+                        key=f'slider_b_{value}'
                     )
-
-    if st.button("Weiter"):
-        # Perform a final check
-        if not st.session_state.selected_values:
-            st.warning("Bitte wähle mindestens einen Wert aus, bevor du fortfährst.")
-        else:
-            next_page('step_3')
     
+    if st.button("Weiter"):
+        next_page('step_3')
+
 def render_step_3():
-    st.title("Step 3: Emotionen & Denkfehler")
-    with st.container():
-        # The Red Hat
-        st.markdown("#### Dein Bauchgefühl (Der 'Rote Hut' von Edward de Bono)")
-        st.markdown("Schreibe auf, welche Gefühle und intuitive Gedanken du zu den Optionen hast. Es geht nicht um Logik, sondern um Emotionen.")
-        st.session_state.emotions = st.text_area("Deine Gedanken:", value=st.session_state.emotions, height=150)
+    st.title("Step 3: Pro & Contra")
     
-    selected_content = category_content.get(st.session_state.problem_category, {})
-    biases = selected_content.get("cognitive_biases", {}).get("biases", [])
+    st.markdown("Analysiere nun die Vor- und Nachteile jeder Option.")
     
-    if biases:
-        with st.container():
-            st.markdown("#### Reflektiere über Denkfehler")
-            for bias_title, bias_question in biases:
-                with st.expander(f"**{bias_title}**"):
-                    st.markdown(bias_question)
-
-    # The "Continue" button has been moved here to appear after the expanders.
-    if st.button("Weiter"):
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader(f"Option A: {st.session_state.options[0]}")
+        st.session_state.pro_a = st.text_area("Vorteile:", value=st.session_state.pro_a, height=150, key="pro_a_input")
+        st.session_state.contra_a = st.text_area("Nachteile:", value=st.session_state.contra_a, height=150, key="contra_a_input")
+    with col2:
+        st.subheader(f"Option B: {st.session_state.options[1]}")
+        st.session_state.pro_b = st.text_area("Vorteile:", value=st.session_state.pro_b, height=150, key="pro_b_input")
+        st.session_state.contra_b = st.text_area("Nachteile:", value=st.session_state.contra_b, height=150, key="contra_b_input")
+    
+    is_valid = all([st.session_state.pro_a, st.session_state.contra_a, st.session_state.pro_b, st.session_state.contra_b])
+    if st.button("Weiter", disabled=not is_valid):
         next_page('step_4')
 
 def render_step_4():
-    st.title("Step 4: Pro/Contra & Zukunft")
-    
-    # The Yellow and Black Hat
-    with st.container():
-        st.markdown(f"#### Vorteile (Der 'Gelbe Hut' von Edward de Bono)")
-        st.session_state.pro_a = st.text_area(
-            f"Was spricht für Option A: '{st.session_state.options[0]}'?",
-            value=st.session_state.pro_a,
-            key="pro_a_area", height=150
-        )
-        st.session_state.pro_b = st.text_area(
-            f"Was spricht für Option B: '{st.session_state.options[1]}'?",
-            value=st.session_state.pro_b,
-            key="pro_b_area", height=150
-        )
+    st.title("Step 4: Emotionen & Kognitive Verzerrungen")
     
     with st.container():
-        st.markdown(f"#### Nachteile (Der 'Schwarze Hut' von Edward de Bono)")
-        st.session_state.contra_a = st.text_area(
-            f"Was spricht gegen Option A: '{st.session_state.options[0]}'?",
-            value=st.session_state.contra_a,
-            key="contra_a_area", height=150
+        st.markdown("#### Deine Gefühle")
+        st.session_state.emotions = st.text_area(
+            "Welche Gefühle sind mit jeder Option verbunden? (z.B. Angst, Freude, Erleichterung)",
+            value=st.session_state.emotions,
+            height=100
         )
-        st.session_state.contra_b = st.text_area(
-            f"Was spricht gegen Option B: '{st.session_state.options[1]}'?",
-            value=st.session_state.contra_b,
-            key="contra_b_area", height=150
-        )
-        
-    # The Green Hat
-    with st.container():
-        st.markdown("#### Kreative Optionen (Der 'Grüne Hut' von Edward de Bono)")
-        st.markdown("Gibt es noch andere, unkonventionelle Optionen, die du bisher nicht in Betracht gezogen hast? Schreibe sie hier auf.")
-        st.session_state.creative_options = st.text_area(
-            "Andere Ideen:",
-            value=st.session_state.creative_options,
-            key="creative_options_area", height=150
-        )
+    
+    # Cognitive Biases section
+    selected_category = st.session_state.problem_category
+    if selected_category in category_content:
+        biases_data = category_content[selected_category]['cognitive_biases']
+        with st.expander(f"#### Kognitive Verzerrungen: {biases_data['title']}"):
+            st.markdown("Überprüfe, ob eine dieser typischen Denkfallen deine Entscheidung beeinflusst.")
+            for bias, question in biases_data['biases']:
+                st.markdown(f"**{bias}**")
+                st.info(question)
 
-    # Regret Minimization Framework
-    with st.container():
-        st.markdown(f"#### Zukunftsszenario (nach Jeff Bezos)")
-        st.markdown("Stelle dir vor, du bist 80 Jahre alt. Welche Entscheidung würdest du am meisten bereuen? Das Regret Minimization Framework hilft dir, aus einer langfristigen Perspektive zu entscheiden.")
-        st.session_state.future_scenario_a = st.text_area(
-            f"Wie sieht dein Leben in 1, 3 und 5 Jahren aus, wenn du dich für Option A entscheidest?",
-            value=st.session_state.future_scenario_a,
-            key="scenario_a", height=200
-        )
-        st.session_state.future_scenario_b = st.text_area(
-            f"Wie sieht dein Leben in 1, 3 und 5 Jahren aus, wenn du dich für Option B entscheidest?",
-            value=st.session_state.future_scenario_b,
-            key="scenario_b", height=200
-        )
-
-    if st.button("Weiter"):
+    is_valid = bool(st.session_state.emotions)
+    if st.button("Weiter", disabled=not is_valid):
         next_page('step_5')
 
 def render_step_5():
-    st.title("Step 5: Zusammenfassung")
+    st.title("Step 5: Das große Bild")
+    
+    st.markdown("Betrachte deine Optionen jetzt aus einer neuen Perspektive.")
     
     with st.container():
-        st.markdown("#### Übersicht")
-        st.subheader("Deine Entscheidung:")
-        st.info(st.session_state.problem)
-        st.subheader("Deine Optionen:")
-        st.write(f"**Option A:** {st.session_state.options[0]}")
-        st.write(f"**Option B:** {st.session_state.options[1]}")
-
-    if st.session_state.selected_values:
-        with st.container():
-            st.markdown("#### Quantitative Auswertung (nach Werten):")
-            data = []
-            score_a = 0
-            score_b = 0
-            for value in st.session_state.selected_values:
-                rating_a = st.session_state.values_rating.get(f"{value}_A", 0)
-                rating_b = st.session_state.values_rating.get(f"{value}_B", 0)
-                score_a += rating_a
-                score_b += rating_b
-                data.append({
-                    "value": value,
-                    "option": st.session_state.options[0],
-                    "rating": rating_a
-                })
-                data.append({
-                    "value": value,
-                    "option": st.session_state.options[1],
-                    "rating": rating_b
-                })
-            
-            df = pd.DataFrame(data)
-            if not df.empty:
-                chart = alt.Chart(df).mark_bar().encode(
-                    x=alt.X('value', title='Werte'),
-                    y=alt.Y('rating', title='Bewertung (1-10)'),
-                    color=alt.Color('option', legend=alt.Legend(title="Option")),
-                    column=alt.Column('option', header=alt.Header(titleOrient="bottom"))
-                ).properties(
-                    title="Werte-Bewertung im Vergleich"
-                )
-                
-                cols = st.columns([4, 4, 4, 4, 4, 4, 4],width=4000)
-                with cols[0]:
-                    st.altair_chart(chart, use_container_width=True)         
-                
-                # Display the total score
-                st.write(f"**Gesamtpunktzahl Option A:** {score_a}")
-                st.write(f"**Gesamtpunktzahl Option B:** {score_b}")
-
-
-    with st.container():
-        st.markdown("#### Deine Gedanken & Szenarien:")
-        st.write(f"**Vorteile für {st.session_state.options[0]}:**")
-        st.write(st.session_state.pro_a)
-        st.write(f"**Nachteile für {st.session_state.options[0]}:**")
-        st.write(st.session_state.contra_a)
-        st.write(f"**Vorteile für {st.session_state.options[1]}:**")
-        st.write(st.session_state.pro_b)
-        st.write(f"**Nachteile für {st.session_state.options[1]}:**")
-        st.write(st.session_state.contra_b)
-        st.write(f"**Zukunftsszenario {st.session_state.options[0]}:**")
-        st.write(st.session_state.future_scenario_a)
-        st.write(f"**Zukunftsszenario {st.session_state.options[1]}:**")
-        st.write(st.session_state.future_scenario_b)
-
-        if st.session_state.creative_options:
-            st.markdown("#### Weitere Ideen (Der 'Grüne Hut')")
-            st.write(st.session_state.creative_options)
-    
-    with st.container():
-        st.markdown("#### Dein erster konkreter Schritt (Der 'Blaue Hut' & SMART-Ziele)")
-        st.markdown("""
-        Dieser Hut hilft dir, den Prozess zu planen. Um deinen ersten Schritt umsetzbar zu machen, nutze die **SMART-Methode**:
-        - **S**pezifisch: Was genau willst du tun?
-        - **M**essbar: Woran erkennst du, dass du dein Ziel erreicht hast?
-        - **A**ttraktiv: Warum ist dir das Ziel wichtig?
-        - **R**ealistisch: Ist das Ziel erreichbar?
-        - **T**erminiert: Bis wann willst du es umsetzen?
-        """)
-        st.session_state.first_step = st.text_input(
-            "Dein erster konkreter SMART-Schritt:",
-            value=st.session_state.first_step
+        st.markdown("#### Kreatives Brainstorming")
+        st.session_state.creative_options = st.text_area(
+            "Gibt es einen dritten Weg oder eine kreative Lösung, die du noch nicht bedacht hast?",
+            value=st.session_state.creative_options,
+            height=100
         )
-        if st.button("Entscheidung abschließen"):
-            st.success("🎉 Deine Entscheidungsreise wurde abgeschlossen!")
+    
+    with st.container():
+        st.markdown("#### Szenarien der Zukunft")
+        st.session_state.future_scenario_a = st.text_area(
+            f"Stell dir vor, du hast dich für Option A entschieden: {st.session_state.options[0]}. Wie sieht dein Leben in einem Jahr aus?",
+            value=st.session_state.future_scenario_a,
+            height=100
+        )
+        st.session_state.future_scenario_b = st.text_area(
+            f"Stell dir vor, du hast dich für Option B entschieden: {st.session_state.options[1]}. Wie sieht dein Leben in einem Jahr aus?",
+            value=st.session_state.future_scenario_b,
+            height=100
+        )
+    
+    is_valid = all([st.session_state.creative_options, st.session_state.future_scenario_a, st.session_state.future_scenario_b])
+    if st.button("Weiter", disabled=not is_valid):
+        next_page('step_6')
 
+def render_step_6():
+    st.title("Step 6: Dein nächster Schritt")
+    
+    st.markdown("Du hast deine Entscheidung durchdacht. Was ist jetzt der erste, konkrete Schritt, den du unternehmen kannst?")
+    
+    st.session_state.first_step = st.text_area(
+        "Dein erster Schritt:",
+        value=st.session_state.first_step,
+        height=100
+    )
+    
+    if st.button("Abschließen"):
+        next_page('final_summary')
+
+def render_final_summary():
+    st.title("Zusammenfassung deiner Reise")
+    
+    st.markdown("### Deine Entscheidung")
+    st.info(f"**Problem:** {st.session_state.problem}")
+    st.info(f"**Option A:** {st.session_state.options[0]}")
+    st.info(f"**Option B:** {st.session_state.options[1]}")
+    
+    # Create the data for the value rating chart
+    if st.session_state.selected_values:
+        chart_data = []
+        for value in st.session_state.selected_values:
+            chart_data.append({
+                "Wert": value,
+                "Option": st.session_state.options[0],
+                "Bewertung": st.session_state.values_rating.get(f'A_{value}', 0)
+            })
+            chart_data.append({
+                "Wert": value,
+                "Option": st.session_state.options[1],
+                "Bewertung": st.session_state.values_rating.get(f'B_{value}', 0)
+            })
+        
+        df = pd.DataFrame(chart_data)
+        
+        # Create a bar chart with Altair
+        chart = alt.Chart(df).mark_bar().encode(
+            x=alt.X('Wert:N', axis=None),
+            y=alt.Y('Bewertung:Q', title='Wertigkeit'),
+            color=alt.Color('Option:N', legend=alt.Legend(title="Option")),
+            column=alt.Column('Wert:N', header=alt.Header(titleOrient="bottom", labelOrient="bottom")),
+            tooltip=['Wert', 'Option', 'Bewertung']
+        ).properties(
+            title="Werte-Bewertung der Optionen"
+        ).interactive()
+        
+        st.altair_chart(chart, use_container_width=True)
+        
+    st.markdown("---")
+    
+    st.markdown("### Dein nächster Schritt")
+    st.success(st.session_state.first_step)
+    
     st.button("Neue Entscheidungsreise starten", on_click=reset_app)
 
-
-def render_bottom_nav():
-    # Render a fixed bottom navigation bar using HTML and CSS
-    # Check if a tab is active in the query parameters
-    current_tab = st.query_params.get('tab', ['questionnaire'])[0]
-    
-    # Check if a page is active in the query parameters
-    current_page = st.query_params.get('page', ['start'])[0]
-
-    nav_html = f"""
-    <div class="bottom-nav">
-        <a href="?page=start" class="nav-item {'active' if current_page == 'start' else ''}">
-            <span class="icon">🏠</span> Home
-        </a>
-        <a href="?page=step_1" class="nav-item {'active' if current_page in ['step_1', 'step_2', 'step_3', 'step_4', 'step_5'] else ''}">
-            <span class="icon">🧠</span> Entscheiden
-        </a>
-        <a href="?page=wert_reflexion&tab=questionnaire" class="nav-item {'active' if current_page == 'wert_reflexion' and current_tab == 'questionnaire' else ''}">
-            <span class="icon">💡</span> Resilienz
-        </a>
-        <a href="?page=wert_reflexion&tab=paths" class="nav-item {'active' if current_page == 'wert_reflexion' and current_tab == 'paths' else ''}">
-            <span class="icon">🧘</span> Pfade
-        </a>
-    </div>
-    """
-    st.markdown(nav_html, unsafe_allow_html=True)
-
-def main():
-    query_params = st.query_params
-    
-    # Determine the current page from query parameters, default to 'start'
-    page = query_params.get('page', ['start'])[0]
-    st.session_state.page = page
-
-    if st.session_state.page == 'start':
-        render_start_page()
-    elif st.session_state.page == 'step_1':
-        render_step_1()
-    elif st.session_state.page == 'step_2':
-        render_step_2()
-    elif st.session_state.page == 'step_3':
-        render_step_3()
-    elif st.session_state.page == 'step_4':
-        render_step_4()
-    elif st.session_state.page == 'step_5':
-        render_step_5()
-    elif st.session_state.page == 'wert_reflexion':
-        render_wert_reflexion_page()
-    
-    # The bottom navigation bar is displayed on all pages except the start page
-    if st.session_state.page not in ['start']:
-        render_bottom_nav()
-
-main()
+# --- 4. NAVIGATION LOGIC ---
+if st.session_state.page == 'start':
+    render_start_page()
+elif st.session_state.page == 'step_1':
+    render_step_1()
+elif st.session_state.page == 'step_2':
+    render_step_2()
+elif st.session_state.page == 'step_3':
+    render_step_3()
+elif st.session_state.page == 'step_4':
+    render_step_4()
+elif st.session_state.page == 'step_5':
+    render_step_5()
+elif st.session_state.page == 'step_6':
+    render_step_6()
+elif st.session_state.page == 'final_summary':
+    render_final_summary()
+elif st.session_state.page == 'wert_reflexion':
+    render_wert_reflexion_page()
