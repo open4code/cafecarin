@@ -275,16 +275,95 @@ category_content = {
     }
 }
 
-# Fragen für den Resilienz-Fragebogen
+# Fragen für den Resilienz-Fragebogen (jetzt alle 33 Fragen)
 resilience_questions = [
-    "Wenn ich vor einer Herausforderung stehe, glaube ich, dass ich die Situation bewältigen kann.", # Selbstwahrnehmung
-    "Ich habe mindestens eine enge Beziehung zu jemandem, der mich in schwierigen Zeiten unterstützt.", # Soziale Beziehungen
-    "Ich bin in der Lage, Probleme in kleinere, handhabbare Schritte zu unterteilen.", # Problemlösungskompetenz
-    "Ich kann mit schwierigen Gefühlen wie Angst oder Trauer umgehen, ohne dass sie mich überwältigen.", # Emotionsregulation
-    "Ich bin optimistisch, was meine Zukunft angeht und kann mir positive Entwicklungen vorstellen.", # Zukunftsorientierung
-    "Ich sorge aktiv für mein körperliches und geistiges Wohlbefinden (z.B. durch Bewegung, Entspannung oder Hobbys).", # Selbstfürsorge
-    "Ich kann auch in stressigen Situationen Sinn oder Bedeutung in meinen Handlungen finden." # Sinnorientierung
+    # Selbstwahrnehmung
+    "Ich bin mir meiner Stärken und Schwächen bewusst.",
+    "Ich kenne meine Emotionen und kann sie benennen.",
+    "Ich erkenne, wie meine Gedanken mein Verhalten beeinflussen.",
+    # Selbstwirksamkeit
+    "Ich bin überzeugt, dass ich schwierige Situationen meistern kann.",
+    "Ich glaube an meine Fähigkeit, Probleme zu lösen.",
+    "Ich fühle mich kompetent, um meine Ziele zu erreichen.",
+    # Soziale Beziehungen
+    "Ich habe Menschen, auf die ich mich in Krisen verlassen kann.",
+    "Ich suche aktiv den Kontakt zu Freunden und Familie, wenn ich Unterstützung brauche.",
+    "Ich fühle mich in meinen Beziehungen geborgen und angenommen.",
+    # Emotionsregulation
+    "Ich kann mit starken Gefühlen wie Wut oder Trauer umgehen, ohne dass sie mich überfordern.",
+    "Ich finde gesunde Wege, um mich nach einem stressigen Tag zu entspannen.",
+    "Ich erlaube mir, alle meine Gefühle zu spüren, ohne sie zu bewerten.",
+    # Stressbewältigung
+    "Ich habe Techniken, um mich in stressigen Momenten zu beruhigen.",
+    "Ich kann Prioritäten setzen, um Stress zu reduzieren.",
+    "Ich weiß, wie ich meine Energiereserven wieder aufladen kann.",
+    # Problemlösungskompetenz
+    "Ich gehe Problemen aktiv und systematisch an, anstatt sie zu ignorieren.",
+    "Ich kann eine Situation aus verschiedenen Perspektiven betrachten, um eine Lösung zu finden.",
+    "Ich bin kreativ in der Suche nach neuen Lösungen.",
+    # Zukunftsorientierung
+    "Ich bin optimistisch, was meine Zukunft angeht.",
+    "Ich kann mir positive Entwicklungen für mein Leben vorstellen.",
+    "Ich habe klare Ziele, die mir Orientierung geben.",
+    # Akzeptanz
+    "Ich kann Dinge akzeptieren, die ich nicht ändern kann.",
+    "Ich vergebe mir selbst für Fehler, die ich gemacht habe.",
+    "Ich nehme Herausforderungen als Teil des Lebens an.",
+    # Sinnorientierung
+    "Ich finde meine Handlungen auch in schwierigen Zeiten sinnvoll.",
+    "Ich spüre eine Verbindung zu etwas Größerem als mir selbst.",
+    "Meine Werte leiten mich durchs Leben.",
+    # Kreativität
+    "Ich bin offen für neue Ideen und unkonventionelle Lösungen.",
+    "Ich nutze meine Vorstellungskraft, um aus einer schwierigen Situation herauszukommen.",
+    "Ich kann mich von starren Denkmustern lösen.",
+    # Humor
+    "Ich kann auch in schwierigen Situationen noch lachen.",
+    "Ich nutze Humor als Ventil, um Anspannung zu lösen.",
+    "Ich kann über mich selbst lachen, ohne mich zu verurteilen."
 ]
+
+# Vorab definierte Analysen basierend auf dem Score (als Ersatz für die API)
+def get_canned_analysis(score, max_score):
+    if score <= max_score * 0.4:
+        return """
+**Deine Resilienz: Fundament aufbauen**
+
+Deine aktuelle Punktzahl deutet darauf hin, dass du dich in einigen Bereichen deiner Resilienz noch im Aufbau befindest. Das ist eine wichtige Erkenntnis! Es zeigt, dass du das Potenzial hast, deine Widerstandsfähigkeit gezielt zu stärken und dich besser auf künftige Herausforderungen vorzubereiten. Die Arbeit an diesen Faktoren kann einen großen Unterschied in deinem Wohlbefinden machen.
+
+**Tipps zur Stärkung deiner Resilienz:**
+
+1.  **Klein anfangen**: Wähle einen der Resilienzfaktoren, in dem du dich am schwächsten fühlst, und konzentriere dich auf kleine, machbare Schritte. Wenn es z.B. um soziale Beziehungen geht, sende heute einer Person, die dir wichtig ist, eine Nachricht.
+2.  **Selbstfürsorge priorisieren**: Sorge bewusst für dich. Das kann ein Spaziergang an der frischen Luft, eine Tasse Tee in Ruhe oder 15 Minuten mit einem Hobby sein. Das sind keine Luxusgüter, sondern Bausteine der Resilienz.
+3.  **Positive Selbstwahrnehmung fördern**: Schreibe jeden Abend drei Dinge auf, die du an diesem Tag gut gemacht hast oder auf die du stolz bist. Das stärkt das Vertrauen in deine eigenen Fähigkeiten.
+4.  **Umgang mit Gefühlen lernen**: Erkenne und benenne deine Gefühle, anstatt sie zu unterdrücken. Ein Emotionstagebuch kann dir helfen, Muster zu erkennen und besser damit umzugehen.
+"""
+    elif score <= max_score * 0.7:
+        return """
+**Deine Resilienz: Solides Fundament**
+
+Deine Punktzahl zeigt, dass du bereits über ein solides Fundament an Resilienz verfügst. Du bist in der Lage, mit Herausforderungen umzugehen und hast bereits einige der wichtigsten Resilienzfaktoren in deinem Leben integriert. Das ist eine großartige Ausgangslage, um deine Fähigkeiten gezielt weiter auszubauen.
+
+**Tipps zur Stärkung deiner Resilienz:**
+
+1.  **Netzwerk stärken**: Pflege deine sozialen Kontakte bewusst. Nimm dir Zeit für die Menschen, die dir guttun, und sei auch für sie da. Ein starkes soziales Netz ist dein wichtigster Puffer in schwierigen Zeiten.
+2.  **Probleme aktiv angehen**: Versuche bei der nächsten Herausforderung, sie in kleinere, überschaubare Schritte zu zerlegen. Das nimmt dem Problem die Wucht und macht es lösbarer.
+3.  **Sinn und Werte vertiefen**: Reflektiere regelmäßig darüber, was dir im Leben wirklich wichtig ist. Wenn du deine Handlungen an deinen Werten ausrichtest, gewinnst du an innerer Stärke und Orientierung.
+4.  **Optimismus kultivieren**: Übe dich darin, auch in schwierigen Situationen nach den positiven Aspekten zu suchen, ohne die Realität zu leugnen. Welche Lektion kannst du aus dieser Erfahrung lernen?
+"""
+    else:
+        return """
+**Deine Resilienz: Hohe Widerstandsfähigkeit**
+
+Herzlichen Glückwunsch! Deine hohe Punktzahl zeigt, dass du über eine starke Resilienz verfügst. Du bist gut gerüstet, um mit Rückschlägen und Krisen umzugehen und kannst diese sogar als Chance für Wachstum nutzen. Deine Fähigkeiten in Bereichen wie Selbstwahrnehmung, Problemlösung und sozialen Beziehungen sind gut ausgeprägt.
+
+**Tipps zur Aufrechterhaltung und Weiterentwicklung:**
+
+1.  **Mentoring oder Vorbild sein**: Nutze deine Stärke, um auch anderen zu helfen. Indem du deine Erfahrungen teilst, stärkst du nicht nur dein eigenes Fundament, sondern unterstützt auch dein Umfeld.
+2.  **Kreativität und Humor einsetzen**: Nutze deine Kreativität, um unkonventionelle Lösungen zu finden, und vergiss nie, auch in schwierigen Situationen den Humor nicht zu verlieren. Diese beiden Faktoren sind oft die Geheimwaffen der Resilienz.
+3.  **Regelmäßige Reflexion**: Nimm dir weiterhin Zeit, um über deine Werte und dein Leben nachzudenken. Das bewahrt dich davor, dich in der Hektik des Alltags zu verlieren, und hält dich auf dem richtigen Kurs.
+4.  **Neue Herausforderungen suchen**: Gehe bewusst aus deiner Komfortzone heraus. Du hast die Fähigkeiten, neue Dinge zu lernen und zu wachsen. Setze dir neue Ziele, die dich motivieren und deine Resilienz weiter festigen.
+"""
 
 # --- 4. SEITEN-INHALT RENDERN ---
 
@@ -615,30 +694,8 @@ def render_resilience_results_page():
     max_score = len(resilience_questions) * 5
     st.markdown(f"**Deine Gesamtpunktzahl:** **{total_score}** von **{max_score}**")
     
-    if st.session_state.resilience_analysis is None:
-        st.session_state.processing_analysis = True
-        
-        # Generiere die Analyse mit dem LLM
-        prompt = f"""
-        Basierend auf einer Gesamtpunktzahl von {total_score} von maximal {max_score} Punkten aus einem Resilienz-Fragebogen, erstelle eine personalisierte Analyse des Resilienz-Levels. Die Fragen bezogen sich auf Selbstwahrnehmung, soziale Beziehungen, Problemlösungskompetenz, Emotionsregulation, Zukunftsorientierung, Selbstfürsorge und Sinnorientierung.
-
-        Gib eine kurze Analyse aus, was die Punktzahl bedeutet, und liste dann 3 bis 5 konkrete, umsetzbare Tipps zur Verbesserung der Resilienz auf, die auf dem Punktwert basieren. Die Ausgabe muss auf Deutsch sein und in Markdown formatiert werden.
-        """
-        
-        with st.spinner("Deine Analyse wird erstellt..."):
-            response_json = call_llm_api_with_backoff(prompt)
-
-        if response_json:
-            try:
-                analysis_text = response_json['candidates'][0]['content']['parts'][0]['text']
-                st.session_state.resilience_analysis = analysis_text
-            except (KeyError, IndexError) as e:
-                st.error("Fehler beim Verarbeiten der LLM-Antwort. Bitte versuche es erneut.")
-                print(f"Error: {e}")
-                print(f"Response: {response_json}")
-        
-        st.session_state.processing_analysis = False
-        st.experimental_rerun()
+    # Nutze die vorab definierte Analyse
+    st.session_state.resilience_analysis = get_canned_analysis(total_score, max_score)
     
     # Zeige die Analyse an
     if st.session_state.resilience_analysis:
