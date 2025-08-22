@@ -12,7 +12,7 @@ import time
 
 # --- 1. SEITENKONFIGURATION & STYLING ---
 st.set_page_config(
-    page_title="Decision Navigator",
+    page_title="VitaBoost",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -266,9 +266,9 @@ category_content = {
 def render_start_page():
     # Haupt-Container für die Startseite
     with st.container():
-        st.title("Decision Navigator")
-        st.image("https://placehold.co/1200x400/FFF8E1/E2B060?text=Deine+Entscheidungsreise")
-        st.markdown("Finde Klarheit und Sinn in deinen Entscheidungen. Wähle den passenden Pfad für deine Situation.")
+        st.title("VitaBoost")
+        st.image("https://placehold.co/1200x400/FFF8E1/E2B060?text=Stärke+deine+Entscheidungen%2C+stärke+dein+Leben")
+        st.markdown("Stärke deine Entscheidungen, stärke dein Leben. Wähle den passenden Pfad für deine Situation.")
 
         col1, col2 = st.columns(2)
         with col1:
@@ -278,7 +278,7 @@ def render_start_page():
 
         with col2:
             st.markdown("### Werte-Reflexion")
-            st.markdown("Reflektiere deine Werte und finde das große Bild, um dein Handeln auszurichten.")
+            st.markdown("Du steckst gerade in einer Krise? Finden wir heraus was deine Resilienzfaktoren sein könnten, um zukünftige Krisen gut bewältigen zu können.")
             st.button("Starte die Werte-Reflexion", on_click=next_page, args=['wert_reflexion'])
 
 def render_wert_reflexion_page():
@@ -596,7 +596,7 @@ def main():
     elif st.session_state.page == 'wert_reflexion':
         render_wert_reflexion_page()
     
-    # Die untere Navigationsleiste wird auf allen Seiten außer der Startseite angezeigt
+    # Die untere Navigationsleiste wird auf allen Seiten außer der Startseite und der Werte-Reflexion angezeigt
     if st.session_state.page not in ['start', 'wert_reflexion']:
         render_bottom_nav()
 
