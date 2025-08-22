@@ -385,7 +385,7 @@ def render_start_page():
 
         with col2:
             st.markdown("### Resilienz-Test")
-            st.markdown("„Du steckst gerade in einer Krise?“ Finden wir heraus was deine Resilienzfaktoren sein könnten um zukünftige Krisen gut bewältigen zu können.")
+            st.markdown("Du steckst gerade in einer Krise? Finden wir heraus was deine Resilienzfaktoren sein könnten um zukünftige Krisen gut bewältigen zu können.")
             if st.button("Starte den Resilienz-Test"):
                 st.query_params['page'] = 'wert_reflexion'
                 st.query_params['tab'] = 'questionnaire'
