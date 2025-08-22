@@ -298,7 +298,7 @@ resilience_questions = [
     "Ich kann Prioritäten setzen, um Stress zu reduzieren.",
     "Ich weiß, wie ich meine Energiereserven wieder aufladen kann.",
     # Problemlösungskompetenz
-    "Ich gehe Probleme aktiv und systematisch an, anstatt sie zu ignorieren.",
+    "Ich gehe Problemen aktiv und systematisch an, anstatt sie zu ignorieren.",
     "Ich kann eine Situation aus verschiedenen Perspektiven betrachten, um eine Lösung zu finden.",
     "Ich bin kreativ in der Suche nach neuen Lösungen.",
     # Zukunftsorientierung
@@ -333,10 +333,11 @@ Deine aktuelle Punktzahl deutet darauf hin, dass du dich in einigen Bereichen de
 
 **Tipps zur Stärkung deiner Resilienz:**
 
-1.  **Klein anfangen**: Wähle einen der Resilienzfaktoren, in dem du dich am schwächsten fühlst, und konzentriere dich auf kleine, machbare Schritte. Wenn es z.B. um soziale Beziehungen geht, sende heute einer Person, die dir wichtig ist, eine Nachricht.
-2.  **Selbstfürsorge priorisieren**: Sorge bewusst für dich. Das kann ein Spaziergang an der frischen Luft, eine Tasse Tee in Ruhe oder 15 Minuten mit einem Hobby sein. Das sind keine Luxusgüter, sondern Bausteine der Resilienz.
-3.  **Positive Selbstwahrnehmung fördern**: Schreibe jeden Abend drei Dinge auf, die du an diesem Tag gut gemacht hast oder auf die du stolz bist. Das stärkt das Vertrauen in deine eigenen Fähigkeiten.
-4.  **Umgang mit Gefühlen lernen**: Erkenne und benenne deine Gefühle, anstatt sie zu unterdrücken. Ein Emotionstagebuch kann dir helfen, Muster zu erkennen und besser damit umzugehen.
+1.  **Selbstwahrnehmung & Selbstfürsorge**: Beginne damit, dich selbst besser kennenzulernen. Frage dich, wie du dich fühlst und was du wirklich brauchst. Integriere kleine Rituale in deinen Alltag, die nur dir gewidmet sind, sei es ein 10-minütiger Spaziergang, eine Tasse Tee in Ruhe oder ein heißes Bad.
+2.  **Soziale Beziehungen aktiv pflegen**: Suche den Kontakt zu Menschen, die dir guttun und denen du vertraust. Ein offenes Gespräch über deine Gefühle kann eine enorme Last von deinen Schultern nehmen.
+3.  **Realistische Ziele setzen**: Große Probleme können überwältigend wirken. Zerlege sie in kleine, überschaubare Schritte. Wenn du zum Beispiel eine neue Fähigkeit lernen willst, fange mit einem 15-minütigen Online-Tutorial an, anstatt direkt einen ganzen Kurs zu planen.
+4.  **Umgang mit Gefühlen lernen**: Gefühle sind Wegweiser. Versuche, sie ohne Urteil zu beobachten, anstatt sie zu unterdrücken. Ein Emotionstagebuch kann dir helfen, Muster zu erkennen.
+5.  **Perspektivwechsel üben**: Wenn eine Situation aussichtslos erscheint, versuche sie aus einem anderen Blickwinkel zu betrachten. Wie würde ein Freund die Situation sehen? Welche Lektion kannst du daraus lernen?
 """
     elif score <= max_score * 0.7:
         return """
@@ -346,10 +347,11 @@ Deine Punktzahl zeigt, dass du bereits über ein solides Fundament an Resilienz 
 
 **Tipps zur Stärkung deiner Resilienz:**
 
-1.  **Netzwerk stärken**: Pflege deine sozialen Kontakte bewusst. Nimm dir Zeit für die Menschen, die dir guttun, und sei auch für sie da. Ein starkes soziales Netz ist dein wichtigster Puffer in schwierigen Zeiten.
-2.  **Probleme aktiv angehen**: Versuche bei der nächsten Herausforderung, sie in kleinere, überschaubare Schritte zu zerlegen. Das nimmt dem Problem die Wucht und macht es lösbarer.
-3.  **Sinn und Werte vertiefen**: Reflektiere regelmäßig darüber, was dir im Leben wirklich wichtig ist. Wenn du deine Handlungen an deinen Werten ausrichtest, gewinnst du an innerer Stärke und Orientierung.
-4.  **Optimismus kultivieren**: Übe dich darin, auch in schwierigen Situationen nach den positiven Aspekten zu suchen, ohne die Realität zu leugnen. Welche Lektion kannst du aus dieser Erfahrung lernen?
+1.  **Soziales Netz bewusst stärken**: Pflege deine Beziehungen aktiv. Organisiere regelmäßige Treffen, sei ein guter Zuhörer und biete deine Hilfe an. Ein starkes soziales Netz ist dein wichtigster Puffer in schwierigen Zeiten.
+2.  **Kreative Problemlösung**: Wenn du vor einem Problem stehst, gehe es nicht nur auf dem naheliegendsten Weg an. Brainstorme unkonventionelle Lösungen, denke "out of the box". Manchmal liegt die Lösung in einer völlig unerwarteten Idee.
+3.  **Sinn und Werte vertiefen**: Reflektiere regelmäßig darüber, was dir im Leben wirklich wichtig ist. Wenn du deine Handlungen an deinen Werten ausrichtest, gewinnst du an innerer Stärke und Orientierung. Überlege, wie du dein Handeln noch besser mit deinen tiefsten Überzeugungen in Einklang bringen kannst.
+4.  **Optimismus kultivieren**: Übe dich darin, auch in schwierigen Situationen nach den positiven Aspekten zu suchen, ohne die Realität zu leugnen. Welche Lektion kannst du aus dieser Erfahrung lernen? Betrachte Krisen als Wachstumschancen.
+5.  **Humor einsetzen**: Nimm das Leben nicht immer zu ernst. Humor ist ein mächtiges Werkzeug, um Anspannung zu lösen und eine positive Perspektive zu bewahren. Suche bewusst nach Gelegenheiten zum Lachen, sei es durch Filme, Witze oder einfach das Teilen lustiger Anekdoten.
 """
     else:
         return """
@@ -359,10 +361,11 @@ Herzlichen Glückwunsch! Deine hohe Punktzahl zeigt, dass du über eine starke R
 
 **Tipps zur Aufrechterhaltung und Weiterentwicklung:**
 
-1.  **Mentoring oder Vorbild sein**: Nutze deine Stärke, um auch anderen zu helfen. Indem du deine Erfahrungen teilst, stärkst du nicht nur dein eigenes Fundament, sondern unterstützt auch dein Umfeld.
-2.  **Kreativität und Humor einsetzen**: Nutze deine Kreativität, um unkonventionelle Lösungen zu finden, und vergiss nie, auch in schwierigen Situationen den Humor nicht zu verlieren. Diese beiden Faktoren sind oft die Geheimwaffen der Resilienz.
-3.  **Regelmäßige Reflexion**: Nimm dir weiterhin Zeit, um über deine Werte und dein Leben nachzudenken. Das bewahrt dich davor, dich in der Hektik des Alltags zu verlieren, und hält dich auf dem richtigen Kurs.
-4.  **Neue Herausforderungen suchen**: Gehe bewusst aus deiner Komfortzone heraus. Du hast die Fähigkeiten, neue Dinge zu lernen und zu wachsen. Setze dir neue Ziele, die dich motivieren und deine Resilienz weiter festigen.
+1.  **Mentoring und Wissensaustausch**: Nutze deine Stärke, um auch anderen zu helfen. Indem du deine Erfahrungen teilst, stärkst du nicht nur dein eigenes Fundament, sondern unterstützt auch dein Umfeld und schaffst ein Netzwerk der gegenseitigen Unterstützung.
+2.  **Aktivität in den Lebensbereichen**: Setze dir bewusst Ziele in Bereichen, die du vielleicht bisher vernachlässigt hast. Ob es darum geht, ein neues Hobby zu beginnen, eine neue Sprache zu lernen oder dich ehrenamtlich zu engagieren – du hast die Fähigkeit, dich anzupassen und zu wachsen.
+3.  **Lebenssinn vertiefen**: Reflektiere, wie deine täglichen Handlungen zu deinem größeren Lebenssinn beitragen. Wenn du eine starke Sinnorientierung hast, kannst du auch die größten Stürme überstehen, ohne dein Ziel aus den Augen zu verlieren.
+4.  **Kreativität als Lebenshaltung**: Nutze deine Kreativität nicht nur zur Problemlösung, sondern auch als Ausdruck deiner Persönlichkeit. Malen, schreiben, Musik machen oder einfach nur das Finden unkonventioneller Wege im Alltag können deine innere Stärke weiter festigen.
+5.  **Humor als Resilienzanker**: Integriere Humor bewusst in deinen Alltag. Lache über dich selbst, teile lustige Momente mit anderen und nutze Humor, um Anspannung zu reduzieren. Humor ist eine der stärksten Waffen gegen Widrigkeiten.
 """
 
 # --- 4. SEITEN-INHALT RENDERN ---
@@ -676,8 +679,13 @@ def render_resilience_questions_page():
 
     # Weiter-Button zum Anzeigen der Ergebnisse
     if st.button("Fragebogen abschließen"):
-        # Berechne die Gesamtpunktzahl
-        st.session_state.resilience_score = sum(st.session_state.resilience_answers.values())
+        # Ladeanzeige, bevor die Seite wechselt
+        with st.spinner("Deine Punktzahl wird berechnet... bitte habe einen kleinen Moment Geduld."):
+            time.sleep(1) # Simulation einer kurzen Ladezeit
+            # Berechne die Gesamtpunktzahl
+            st.session_state.resilience_score = sum(st.session_state.resilience_answers.values())
+        
+        # Wechsle zur Ergebnisseite
         next_page('resilience_results')
 
 def render_resilience_results_page():
