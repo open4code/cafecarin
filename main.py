@@ -393,7 +393,7 @@ def render_start_page():
 
         with col3:
             st.markdown("### Gesundheitspfade")
-            st.markdown("Du steckst gerade in einer Krise? Stärke deine Resilienzfaktoren, um zukünftige Krisen gut zu bewältigen.")
+            st.markdown("Beginne einen interaktiven Pfad zur Stärkung deiner Resilienz und inneren Stärke.")
             if st.button("Starte die Pfade"):
                 st.query_params['page'] = 'wert_reflexion'
                 st.query_params['tab'] = 'paths'
@@ -408,134 +408,141 @@ def render_wert_reflexion_page():
     
     # Create the tabs
     tab1, tab2 = st.tabs(["Resilienz-Fragebogen", "Interaktive Pfade"])
+    if active_tab == 'paths':
+        # This workaround ensures the correct tab is selected visually on page load.
+        # It's a bit hacky but necessary with Streamlit's current behavior.
+        tab_index = 1
+    else:
+        tab_index = 0
 
-    with tab1:
-        st.header("Wie steht es um deine Resilienz?")
-        st.markdown("Beantworte die folgenden Fragen, um eine erste Einschätzung deiner Widerstandsfähigkeit zu erhalten.")
-        
-        # Questions for the questionnaire
-        questions = [
-            "Ich kann mich gut von Rückschlägen erholen.",
-            "Ich habe ein starkes soziales Netzwerk, auf das ich mich verlassen kann.",
-            "Ich betrachte Herausforderungen als Chancen zu wachsen.",
-            "Ich bin optimistisch, was meine Zukunft angeht.",
-            "Ich kann meine Emotionen gut regulieren, auch in stressigen Situationen."
-        ]
-        
-        answers = {}
-        for i, question in enumerate(questions):
-            col1, col2 = st.columns([4, 1])
-            with col1:
-                st.write(question)
-            with col2:
-                answers[i] = st.selectbox(
-                    "Rating",
-                    options=[1, 2, 3, 4, 5],
-                    index=st.session_state.resilience_answers.get(i, 2),
-                    key=f"q_{i}",
-                    format_func=lambda x: f"{x} / 5"
-                )
-        
-        st.session_state.resilience_answers = answers
-        
-        if st.button("Ergebnis analysieren"):
-            st.session_state.resilience_score = sum(answers.values())
+    if tab_index == 0:
+        with tab1:
+            st.header("Wie steht es um deine Resilienz?")
+            st.markdown("Beantworte die folgenden Fragen, um eine erste Einschätzung deiner Widerstandsfähigkeit zu erhalten.")
             
-            # Show a spinner while analysis is running
-            with st.spinner('Analysiere dein Ergebnis...'):
-                prompt = (
-                    f"Based on a resilience questionnaire with 5 questions (1=strongly disagree, 5=strongly agree), a user achieved a total score of {st.session_state.resilience_score}. "
-                    f"The maximum score is 25. Generate a personalized, encouraging analysis that explains what the score means. "
-                    f"Also provide concrete suggestions on how to further strengthen resilience. Use friendly, motivating language. "
-                    f"Begin directly with the analysis, without an introduction."
-                )
+            # Questions for the questionnaire
+            questions = [
+                "Ich kann mich gut von Rückschlägen erholen.",
+                "Ich habe ein starkes soziales Netzwerk, auf das ich mich verlassen kann.",
+                "Ich betrachte Herausforderungen als Chancen zu wachsen.",
+                "Ich bin optimistisch, was meine Zukunft angeht.",
+                "Ich kann meine Emotionen gut regulieren, auch in stressigen Situationen."
+            ]
+            
+            answers = {}
+            for i, question in enumerate(questions):
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.write(question)
+                with col2:
+                    answers[i] = st.selectbox(
+                        "Rating",
+                        options=[1, 2, 3, 4, 5],
+                        index=st.session_state.resilience_answers.get(i, 2),
+                        key=f"q_{i}",
+                        format_func=lambda x: f"{x} / 5"
+                    )
+            
+            st.session_state.resilience_answers = answers
+            
+            if st.button("Ergebnis analysieren"):
+                st.session_state.resilience_score = sum(answers.values())
                 
-                # Call the LLM API
-                llm_response = call_llm_api_with_backoff(prompt)
+                # Show a spinner while analysis is running
+                with st.spinner('Analysiere dein Ergebnis...'):
+                    prompt = (
+                        f"Based on a resilience questionnaire with 5 questions (1=strongly disagree, 5=strongly agree), a user achieved a total score of {st.session_state.resilience_score}. "
+                        f"The maximum score is 25. Generate a personalized, encouraging analysis that explains what the score means. "
+                        f"Also provide concrete suggestions on how to further strengthen resilience. Use friendly, motivating language. "
+                        f"Begin directly with the analysis, without an introduction."
+                    )
+                    
+                    # Call the LLM API
+                    llm_response = call_llm_api_with_backoff(prompt)
+                    
+                    if llm_response:
+                        try:
+                            analysis_text = llm_response['candidates'][0]['content']['parts'][0]['text']
+                            st.session_state.resilience_analysis = analysis_text
+                        except (KeyError, IndexError):
+                            st.session_state.resilience_analysis = "There was a problem with the analysis. Please try again later."
                 
-                if llm_response:
-                    try:
-                        analysis_text = llm_response['candidates'][0]['content']['parts'][0]['text']
-                        st.session_state.resilience_analysis = analysis_text
-                    except (KeyError, IndexError):
-                        st.session_state.resilience_analysis = "There was a problem with the analysis. Please try again later."
-            
-            st.experimental_rerun()
-            
-        if st.session_state.resilience_analysis:
-            st.subheader("Deine persönliche Analyse")
-            st.info(st.session_state.resilience_analysis)
-            st.markdown(f"**Dein Gesamtscore:** {st.session_state.resilience_score} von 25 Punkten.")
-            st.markdown("---")
-            st.button("Fragebogen zurücksetzen", on_click=reset_app)
-
-    with tab2:
-        st.header("Interaktive Resilienz-Pfade")
-        if st.session_state.show_path_screen:
-            render_path_screen()
-        else:
-            # Path selection view
-            st.markdown("### Wähle deinen Pfad")
-            
-            def start_path(path_key):
-                st.session_state.current_path = paths[path_key]
-                st.session_state.current_stage_index = 0
-                st.session_state.show_path_screen = True
                 st.experimental_rerun()
+                
+            if st.session_state.resilience_analysis:
+                st.subheader("Deine persönliche Analyse")
+                st.info(st.session_state.resilience_analysis)
+                st.markdown(f"**Dein Gesamtscore:** {st.session_state.resilience_score} von 25 Punkten.")
+                st.markdown("---")
+                st.button("Fragebogen zurücksetzen", on_click=reset_app)
+    elif tab_index == 1:
+        with tab2:
+            st.header("Interaktive Resilienz-Pfade")
+            if st.session_state.show_path_screen:
+                render_path_screen()
+            else:
+                # Path selection view
+                st.markdown("### Wähle deinen Pfad")
+                
+                def start_path(path_key):
+                    st.session_state.current_path = paths[path_key]
+                    st.session_state.current_stage_index = 0
+                    st.session_state.show_path_screen = True
+                    st.experimental_rerun()
 
-            col_stress, col_self_image = st.columns(2)
-            with col_stress:
-                st.markdown(
-                    f"""
-                    <div class="path-card-container">
-                        <h4>{paths['stress']['title']}</h4>
-                        <p>{paths['stress']['description']}</p>
-                    </div>
-                    """, 
-                    unsafe_allow_html=True
-                )
-                if st.button("Starten", key="start_stress"):
-                    start_path('stress')
-            
-            with col_self_image:
-                st.markdown(
-                    f"""
-                    <div class="path-card-container">
-                        <h4>{paths['self-image']['title']}</h4>
-                        <p>{paths['self-image']['description']}</p>
-                    </div>
-                    """, 
-                    unsafe_allow_html=True
-                )
-                if st.button("Starten", key="start_self_image"):
-                    start_path('self-image')
+                col_stress, col_self_image = st.columns(2)
+                with col_stress:
+                    st.markdown(
+                        f"""
+                        <div class="path-card-container">
+                            <h4>{paths['stress']['title']}</h4>
+                            <p>{paths['stress']['description']}</p>
+                        </div>
+                        """, 
+                        unsafe_allow_html=True
+                    )
+                    if st.button("Starten", key="start_stress"):
+                        start_path('stress')
+                
+                with col_self_image:
+                    st.markdown(
+                        f"""
+                        <div class="path-card-container">
+                            <h4>{paths['self-image']['title']}</h4>
+                            <p>{paths['self-image']['description']}</p>
+                        </div>
+                        """, 
+                        unsafe_allow_html=True
+                    )
+                    if st.button("Starten", key="start_self_image"):
+                        start_path('self-image')
 
-            col_efficacy, col_connectedness = st.columns(2)
-            with col_efficacy:
-                st.markdown(
-                    f"""
-                    <div class="path-card-container">
-                        <h4>{paths['self-efficacy']['title']}</h4>
-                        <p>{paths['self-efficacy']['description']}</p>
-                    </div>
-                    """, 
-                    unsafe_allow_html=True
-                )
-                if st.button("Starten", key="start_self_efficacy"):
-                    start_path('self-efficacy')
+                col_efficacy, col_connectedness = st.columns(2)
+                with col_efficacy:
+                    st.markdown(
+                        f"""
+                        <div class="path-card-container">
+                            <h4>{paths['self-efficacy']['title']}</h4>
+                            <p>{paths['self-efficacy']['description']}</p>
+                        </div>
+                        """, 
+                        unsafe_allow_html=True
+                    )
+                    if st.button("Starten", key="start_self_efficacy"):
+                        start_path('self-efficacy')
 
-            with col_connectedness:
-                st.markdown(
-                    f"""
-                    <div class="path-card-container">
-                        <h4>{paths['connectedness']['title']}</h4>
-                        <p>{paths['connectedness']['description']}</p>
-                    </div>
-                    """, 
-                    unsafe_allow_html=True
-                )
-                if st.button("Starten", key="start_connectedness"):
-                    start_path('connectedness')
+                with col_connectedness:
+                    st.markdown(
+                        f"""
+                        <div class="path-card-container">
+                            <h4>{paths['connectedness']['title']}</h4>
+                            <p>{paths['connectedness']['description']}</p>
+                        </div>
+                        """, 
+                        unsafe_allow_html=True
+                    )
+                    if st.button("Starten", key="start_connectedness"):
+                        start_path('connectedness')
             
 def render_path_screen():
     path_data = st.session_state.current_path
