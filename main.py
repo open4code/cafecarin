@@ -298,7 +298,7 @@ resilience_questions = [
     "Ich kann Prioritäten setzen, um Stress zu reduzieren.",
     "Ich weiß, wie ich meine Energiereserven wieder aufladen kann.",
     # Problemlösungskompetenz
-    "Ich gehe Problemen aktiv und systematisch an, anstatt sie zu ignorieren.",
+    "Ich gehe Probleme aktiv und systematisch an, anstatt sie zu ignorieren.",
     "Ich kann eine Situation aus verschiedenen Perspektiven betrachten, um eine Lösung zu finden.",
     "Ich bin kreativ in der Suche nach neuen Lösungen.",
     # Zukunftsorientierung
