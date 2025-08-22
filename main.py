@@ -691,6 +691,8 @@ def render_resilience_questions_page():
 
 def render_resilience_results_page():
     st.title("Deine Resilienz-Analyse")
+# NEUE ZEILE: Der Disclaimer wurde hier hinzugefügt
+    st.warning("Disclaimer: Dieser Fragebogen ist ein nicht-klinisches Werkzeug zur Selbsterkenntnis und ersetzt keine professionelle psychologische Beratung.")
     
     if st.session_state.resilience_score is None:
         st.warning("Bitte fülle zuerst den Fragebogen aus.")
