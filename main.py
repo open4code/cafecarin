@@ -1,486 +1,762 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life Manager App</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-        /* Mobile-First-Design für die Navigation */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #ffffff;
-            border-top: 1px solid #e5e7eb;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-        .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 0;
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-        .nav-item.active {
-            color: #2563eb;
-        }
-        /* Style für die aktiven Seitencontainer */
-        .page-container {
-            display: none;
-        }
-        .page-container.active {
-            display: block;
-        }
-    </style>
-</head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-between p-4 pb-20">
+# -*- coding: utf-8 -*-
+# Python script for a Streamlit application with two distinct modules.
+# Module 1: A "Decision Journey" tool that helps analyze pros and cons.
+# Module 2: A "Resilience Reflection" guide based on user input.
 
-    <div id="app-container" class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md my-4">
-        <!-- Seitencontainer -->
-        <div id="home-page" class="page-container active">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Willkommen! 🚀</h1>
-            <div class="space-y-4">
-                <button onclick="goToPage('decide-page')" class="w-full p-4 bg-blue-600 text-white font-bold rounded-2xl shadow-md hover:bg-blue-700 transition duration-300 transform hover:scale-105">
-                    Entscheidungsreise
-                </button>
-                <button onclick="goToPage('resilience-page')" class="w-full p-4 bg-green-600 text-white font-bold rounded-2xl shadow-md hover:bg-green-700 transition duration-300 transform hover:scale-105">
-                    Resilienz-Fragebogen
-                </button>
-                <button onclick="goToPage('health-paths-page')" class="w-full p-4 bg-purple-600 text-white font-bold rounded-2xl shadow-md hover:bg-purple-700 transition duration-300 transform hover:scale-105">
-                    Gesundheitspfade
-                </button>
-                <button onclick="goToPage('todo-page')" class="w-full p-4 bg-yellow-600 text-white font-bold rounded-2xl shadow-md hover:bg-yellow-700 transition duration-300 transform hover:scale-105">
-                    Meine To-Do-Liste
-                </button>
-            </div>
-        </div>
+import streamlit as st
+import altair as alt
+import pandas as pd
+import json
+import requests
+import time
+import base64
 
-        <div id="decide-page" class="page-container">
-            <!-- Inhalt der Entscheidungsreise -->
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Entscheidungsreise 🧠</h1>
-            <div id="decide-steps" class="space-y-4">
-                <!-- Schritte werden hier dynamisch eingefügt -->
-            </div>
-        </div>
+# --- 1. SEITENKONFIGURATION & STYLING ---
+st.set_page_config(
+    page_title="VitaBoost",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-        <div id="resilience-page" class="page-container">
-            <!-- Inhalt des Resilienz-Fragebogens -->
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Resilienz-Fragebogen 🧘</h1>
-            <div id="resilience-questions" class="space-y-6">
-                <!-- Fragen werden dynamisch hier gerendert -->
-            </div>
-        </div>
+# Das CSS wurde komplett neu geschrieben, um das Layout aus dem Bild zu replizieren
+custom_css = """
+<style>
+    /* Allgemeine Farbpalette und Schriftart */
+    :root {
+        --primary-color: #E2B060;
+        --secondary-color: #F8D8C9;
+        --background-color: #FFF8E1;
+        --text-color: #4A4A4A;
+        --container-bg: #FFFFFF;
+        --border-radius: 16px;
+    }
 
-        <div id="health-paths-page" class="page-container">
-            <!-- Inhalt der Gesundheitspfade -->
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Gesundheitspfade 🏆</h1>
-            <div id="health-paths-list" class="space-y-4">
-                <!-- Pfade werden dynamisch hier gerendert -->
-            </div>
-        </div>
+    body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-family: 'Inter', sans-serif;
+    }
+    .stApp {
+        background-color: var(--background-color);
+    }
 
-        <div id="trophy-gallery-page" class="page-container">
-            <!-- Inhalt der Trophäen-Galerie -->
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Trophäen-Galerie 🏅</h1>
-            <div id="trophy-list" class="space-y-4 text-center">
-                <!-- Trophäen werden dynamisch hier gerendert -->
-            </div>
-            <button onclick="goToPage('health-paths-page')" class="w-full p-3 bg-purple-600 text-white font-bold rounded-xl mt-6 hover:bg-purple-700 transition duration-300">
-                Zurück zu den Pfaden
-            </button>
-        </div>
+    /* Styling für alle Container und Expander (die "Karten") */
+    div[data-testid="stVerticalBlock"] > div.st-emotion-cache-1r6y9j9,
+    div[data-testid="stVerticalBlock"] > div.st-emotion-cache-1n1p067 {
+        background-color: var(--container-bg);
+        border-radius: var(--border-radius);
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+    }
+    .st-emotion-cache-1jm692n, .st-emotion-cache-1j0r921 {
+        background-color: transparent;
+        padding: 0;
+    }
 
-        <div id="todo-page" class="page-container">
-            <!-- Inhalt der To-Do-Liste -->
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Meine To-Do-Liste ✅</h1>
-            <div class="flex space-x-2 mb-4">
-                <input type="text" id="newTaskInput" placeholder="Neue Aufgabe hinzufügen..." class="flex-1 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500">
-                <button id="addTaskButton" class="p-3 bg-yellow-600 text-white rounded-xl shadow-md hover:bg-yellow-700 transition duration-300">
-                    Hinzufügen
-                </button>
-            </div>
-            <ul id="taskList" class="space-y-3"></ul>
-            <button id="clearTasksButton" class="w-full mt-6 p-3 bg-red-500 text-white rounded-xl shadow-md hover:bg-red-600 transition duration-300 hidden">
-                Alle Aufgaben löschen
-            </button>
-        </div>
+    /* Styling für Überschriften */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-color);
+        font-weight: 600;
+    }
+    h1 {
+        color: var(--primary-color);
+        font-size: 2.5rem;
+    }
+
+    /* Styling für Buttons */
+    .stButton > button {
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 12px;
+        border: none;
+        padding: 10px 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+    }
+    .stButton > button:hover {
+        background-color: #D4A35B;
+    }
+    
+    .st-emotion-cache-79elbk {
+      gap: 20px;
+    }
+
+    /* Spezielles Styling für Textbereiche und Eingabefelder (Farbhintergrund) */
+    .st-emotion-cache-13gs647, .st-emotion-cache-1cpx9g8, .st-emotion-cache-13v2p5x, .st-emotion-cache-1l006n6 {
+        background-color: var(--secondary-color) !important;
+        color: var(--text-color);
+        border-radius: 12px;
+        border: none;
+        padding: 10px;
+    }
+
+    /* Styling für Schieberegler (Slider) */
+    .st-emotion-cache-14u43s4 {
+        background-color: var(--secondary-color);
+        border-radius: 10px;
+        height: 10px;
+    }
+    .st-emotion-cache-14u43s4 > div {
+        background-color: var(--primary-color);
+    }
+    .stSlider > div > div > div:nth-child(2) {
+        background-color: var(--secondary-color); /* Slider track */
+    }
+    .stSlider > div > div > div:nth-child(2) > div:nth-child(1) {
+        background-color: var(--primary-color); /* Slider fill */
+    }
+
+    /* Styling für die untere Navigationsleiste */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--container-bg);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 10px 0;
+        z-index: 1000;
+        border-top-left-radius: var(--border-radius);
+        border-top-right-radius: var(--border-radius);
+    }
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--text-color);
+        cursor: pointer;
+        font-size: 14px;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+    }
+    .nav-item:hover, .nav-item.active {
+        opacity: 1;
+        color: var(--primary-color);
+    }
+    .nav-item .icon {
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+</style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
+
+
+# --- Konfiguration für LLM API (NICHT ÄNDERN) ---
+# Der API-Schlüssel wird von der Laufzeitumgebung bereitgestellt.
+API_KEY = ""
+API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + API_KEY
+API_HEADERS = {'Content-Type': 'application/json'}
+
+# --- Helper function for making API calls with exponential backoff ---
+def call_llm_api_with_backoff(prompt, max_retries=5, initial_delay=1):
+    """
+    Calls the LLM API with exponential backoff to handle rate limiting.
+    
+    Args:
+        prompt (str): The text prompt for the LLM.
+        max_retries (int): The maximum number of retries.
+        initial_delay (int): The initial delay in seconds.
+        
+    Returns:
+        dict: The JSON response from the API or None on failure.
+    """
+    retries = 0
+    while retries < max_retries:
+        try:
+            payload = {
+                "contents": [
+                    {
+                        "role": "user",
+                        "parts": [{"text": prompt}]
+                    }
+                ]
+            }
+            response = requests.post(API_URL, headers=API_HEADERS, data=json.dumps(payload))
+            response.raise_for_status()  # This will raise an HTTPError for bad responses (4xx or 5xx)
+            
+            result = response.json()
+            if result.get('candidates') and result['candidates'][0].get('content'):
+                return result
+            else:
+                st.error("Error: The LLM response was empty or malformed. Please try again.")
+                return None
+
+        except requests.exceptions.HTTPError as err:
+            if err.response.status_code == 429:
+                delay = initial_delay * (2 ** retries)
+                st.warning(f"Rate limit exceeded. Retrying in {delay} seconds...")
+                time.sleep(delay)
+                retries += 1
+            else:
+                st.error(f"HTTP Error: {err}")
+                return None
+        except requests.exceptions.RequestException as err:
+            st.error(f"Request Error: {err}")
+            return None
+    st.error("Maximum retries reached. The API call failed.")
+    return None
+
+# --- 2. ZUSTAND DER APP VERWALTEN (SESSION STATE) ---
+def init_session_state():
+    if 'page' not in st.session_state: st.session_state.page = 'start'
+    if 'problem' not in st.session_state: st.session_state.problem = ""
+    if 'problem_category' not in st.session_state: st.session_state.problem_category = "Wähle eine Kategorie"
+    if 'options' not in st.session_state: st.session_state.options = ["", ""]
+    # Die Liste der ausgewählten Werte muss beim initialen Laden leer sein
+    if 'selected_values' not in st.session_state: st.session_state.selected_values = []
+    if 'values_rating' not in st.session_state: st.session_state.values_rating = {}
+    if 'emotions' not in st.session_state: st.session_state.emotions = ""
+    if 'pro_a' not in st.session_state: st.session_state.pro_a = ""
+    if 'contra_a' not in st.session_state: st.session_state.contra_a = ""
+    if 'pro_b' not in st.session_state: st.session_state.pro_b = ""
+    if 'contra_b' not in st.session_state: st.session_state.contra_b = ""
+    # Neues Feld für kreative Optionen
+    if 'creative_options' not in st.session_state: st.session_state.creative_options = ""
+    if 'future_scenario_a' not in st.session_state: st.session_state.future_scenario_a = ""
+    if 'future_scenario_b' not in st.session_state: st.session_state.future_scenario_b = ""
+    if 'first_step' not in st.session_state: st.session_state.first_step = ""
+    
+    # Neue Felder für den Resilienz-Fragebogen
+    if 'resilience_answers' not in st.session_state: st.session_state.resilience_answers = {}
+    if 'resilience_score' not in st.session_state: st.session_state.resilience_score = None
+    if 'resilience_analysis' not in st.session_state: st.session_state.resilience_analysis = None
+    if 'processing_analysis' not in st.session_state: st.session_state.processing_analysis = False
+
+
+init_session_state()
+
+def next_page(page_name):
+    st.session_state.page = page_name
+
+def reset_app():
+    st.session_state.clear()
+    init_session_state()
+
+# --- 3. DYNAMISCHE INHALTE FÜR JEDE KATEGORIE ---
+category_content = {
+    "Karriere & Beruf": {
+        "values": ["Finanzielle Sicherheit", "Wachstum", "Autonomie", "Einfluss", "Anerkennung", "Work-Life-Balance"],
+        "cognitive_biases": {
+            "title": "Häufige Denkfehler in der Karriere",
+            "biases": [
+                ("Verlustaversion", "Konzentriere ich mich mehr auf das, was ich im aktuellen Job verlieren könnte, als auf das, was ich im neuen gewinnen könnte?"),
+                ("Ankereffekt", "Hänge ich zu sehr am ersten Gehaltsangebot oder einer ersten Beförderung fest, die ich erhalten habe, und hindert mich das daran, eine bessere Gelegenheit zu erkennen?"),
+                ("Bestätigungsfehler", "Suche ich nur nach Informationen, die meine Entscheidung für oder gegen einen Job bestätigen, und ignoriere ich gegenteilige Informationen?")
+            ]
+        },
+    },
+    "Persönliches Wachstum": {
+        "values": ["Selbstverwirklichung", "Kreativität", "Lernen", "Soziale Bindungen", "Entwicklung", "Freiheit"],
+        "cognitive_biases": {
+            "title": "Häufige Denkfehler bei persönlichem Wachstum",
+            "biases": [
+                ("Status-quo-Verzerrung", "Ziehe ich die einfache Option vor, weil ich Angst vor Veränderungen habe, auch wenn die neue Option mich wachsen lässt?"),
+                ("Bestätigungsfehler", "Suche ich nur nach Informationen, die meine Überzeugung bestätigen, dass eine neue Fähigkeit zu schwer zu erlernen ist?"),
+                ("Verfügbarkeitsheuristik", "Stütze ich meine Entscheidung nur auf leicht verfügbare, spektakuläre Geschichten, statt auf realistischere Fakten?")
+            ]
+        },
+    },
+    "Beziehungen & Familie": {
+        "values": ["Soziale Bindungen", "Harmonie", "Vertrauen", "Empathie", "Stabilität", "Zugehörigkeit"],
+        "cognitive_biases": {
+            "title": "Häufige Denkfehler in Beziehungen",
+            "biases": [
+                ("Rosinenpicken (Cherry Picking)", "Ignoriere ich alle negativen Aspekte und konzentriere ich mich nur auf die guten, um eine schwierige Situation zu vermeiden?"),
+                ("Irrglaube an versunkene Kosten (Sunk Cost Fallacy)", "Bleibe ich in einer Beziehung oder Situation, nur weil ich schon so viel Zeit und Energie investiert habe, anstatt nach vorne zu schauen?"),
+                ("Bestätigungsfehler", "Höre ich nur auf Freunde, die meine Meinung teilen, und vermeide ich Gespräche, die mich herausfordern?")
+            ]
+        },
+    }
+}
+
+# Fragen für den Resilienz-Fragebogen (jetzt alle 33 Fragen)
+resilience_questions = [
+    # Selbstwahrnehmung
+    "Ich bin mir meiner Stärken und Schwächen bewusst.",
+    "Ich kenne meine Emotionen und kann sie benennen.",
+    "Ich erkenne, wie meine Gedanken mein Verhalten beeinflussen.",
+    # Selbstwirksamkeit
+    "Ich bin überzeugt, dass ich schwierige Situationen meistern kann.",
+    "Ich glaube an meine Fähigkeit, Probleme zu lösen.",
+    "Ich fühle mich kompetent, um meine Ziele zu erreichen.",
+    # Soziale Beziehungen
+    "Ich habe Menschen, auf die ich mich in Krisen verlassen kann.",
+    "Ich suche aktiv den Kontakt zu Freunden und Familie, wenn ich Unterstützung brauche.",
+    "Ich fühle mich in meinen Beziehungen geborgen und angenommen.",
+    # Emotionsregulation
+    "Ich kann mit starken Gefühlen wie Wut oder Trauer umgehen, ohne dass sie mich überfordern.",
+    "Ich finde gesunde Wege, um mich nach einem stressigen Tag zu entspannen.",
+    "Ich erlaube mir, alle meine Gefühle zu spüren, ohne sie zu bewerten.",
+    # Stressbewältigung
+    "Ich habe Techniken, um mich in stressigen Momenten zu beruhigen.",
+    "Ich kann Prioritäten setzen, um Stress zu reduzieren.",
+    "Ich weiß, wie ich meine Energiereserven wieder aufladen kann.",
+    # Problemlösungskompetenz
+    "Ich gehe Problemen aktiv und systematisch an, anstatt sie zu ignorieren.",
+    "Ich kann eine Situation aus verschiedenen Perspektiven betrachten, um eine Lösung zu finden.",
+    "Ich bin kreativ in der Suche nach neuen Lösungen.",
+    # Zukunftsorientierung
+    "Ich bin optimistisch, was meine Zukunft angeht.",
+    "Ich kann mir positive Entwicklungen für mein Leben vorstellen.",
+    "Ich habe klare Ziele, die mir Orientierung geben.",
+    # Akzeptanz
+    "Ich kann Dinge akzeptieren, die ich nicht ändern kann.",
+    "Ich vergebe mir selbst für Fehler, die ich gemacht habe.",
+    "Ich nehme Herausforderungen als Teil des Lebens an.",
+    # Sinnorientierung
+    "Ich finde meine Handlungen auch in schwierigen Zeiten sinnvoll.",
+    "Ich spüre eine Verbindung zu etwas Größerem als mir selbst.",
+    "Meine Werte leiten mich durchs Leben.",
+    # Kreativität
+    "Ich bin offen für neue Ideen und unkonventionelle Lösungen.",
+    "Ich nutze meine Vorstellungskraft, um aus einer schwierigen Situation herauszukommen.",
+    "Ich kann mich von starren Denkmustern lösen.",
+    # Humor
+    "Ich kann auch in schwierigen Situationen noch lachen.",
+    "Ich nutze Humor als Ventil, um Anspannung zu lösen.",
+    "Ich kann über mich selbst lachen, ohne mich zu verurteilen."
+]
+
+# Vorab definierte Analysen basierend auf dem Score (als Ersatz für die API)
+def get_canned_analysis(score, max_score):
+    if score <= max_score * 0.4:
+        return """
+**Deine Resilienz: Fundament aufbauen**
+
+Deine aktuelle Punktzahl deutet darauf hin, dass du dich in einigen Bereichen deiner Resilienz noch im Aufbau befindest. Das ist eine wichtige Erkenntnis! Es zeigt, dass du das Potenzial hast, deine Widerstandsfähigkeit gezielt zu stärken und dich besser auf künftige Herausforderungen vorzubereiten. Die Arbeit an diesen Faktoren kann einen großen Unterschied in deinem Wohlbefinden machen.
+
+**Tipps zur Stärkung deiner Resilienz:**
+
+1.  **Selbstwahrnehmung & Selbstfürsorge**: Beginne damit, dich selbst besser kennenzulernen. Frage dich, wie du dich fühlst und was du wirklich brauchst. Integriere kleine Rituale in deinen Alltag, die nur dir gewidmet sind, sei es ein 10-minütiger Spaziergang, eine Tasse Tee in Ruhe oder ein heißes Bad.
+2.  **Soziale Beziehungen aktiv pflegen**: Suche den Kontakt zu Menschen, die dir guttun und denen du vertraust. Ein offenes Gespräch über deine Gefühle kann eine enorme Last von deinen Schultern nehmen.
+3.  **Realistische Ziele setzen**: Große Probleme können überwältigend wirken. Zerlege sie in kleine, überschaubare Schritte. Wenn du zum Beispiel eine neue Fähigkeit lernen willst, fange mit einem 15-minütigen Online-Tutorial an, anstatt direkt einen ganzen Kurs zu planen.
+4.  **Umgang mit Gefühlen lernen**: Gefühle sind Wegweiser. Versuche, sie ohne Urteil zu beobachten, anstatt sie zu unterdrücken. Ein Emotionstagebuch kann dir helfen, Muster zu erkennen.
+5.  **Perspektivwechsel üben**: Wenn eine Situation aussichtslos erscheint, versuche sie aus einem anderen Blickwinkel zu betrachten. Wie würde ein Freund die Situation sehen? Welche Lektion kannst du daraus lernen?
+"""
+    elif score <= max_score * 0.7:
+        return """
+**Deine Resilienz: Solides Fundament**
+
+Deine Punktzahl zeigt, dass du bereits über ein solides Fundament an Resilienz verfügst. Du bist in der Lage, mit Herausforderungen umzugehen und hast bereits einige der wichtigsten Resilienzfaktoren in deinem Leben integriert. Das ist eine großartige Ausgangslage, um deine Fähigkeiten gezielt weiter auszubauen.
+
+**Tipps zur Stärkung deiner Resilienz:**
+
+1.  **Soziales Netz bewusst stärken**: Pflege deine Beziehungen aktiv. Organisiere regelmäßige Treffen, sei ein guter Zuhörer und biete deine Hilfe an. Ein starkes soziales Netz ist dein wichtigster Puffer in schwierigen Zeiten.
+2.  **Kreative Problemlösung**: Wenn du vor einem Problem stehst, gehe es nicht nur auf dem naheliegendsten Weg an. Brainstorme unkonventionelle Lösungen, denke "out of the box". Manchmal liegt die Lösung in einer völlig unerwarteten Idee.
+3.  **Sinn und Werte vertiefen**: Reflektiere regelmäßig darüber, was dir im Leben wirklich wichtig ist. Wenn du deine Handlungen an deinen Werten ausrichtest, gewinnst du an innerer Stärke und Orientierung. Überlege, wie du dein Handeln noch besser mit deinen tiefsten Überzeugungen in Einklang bringen kannst.
+4.  **Optimismus kultivieren**: Übe dich darin, auch in schwierigen Situationen nach den positiven Aspekten zu suchen, ohne die Realität zu leugnen. Welche Lektion kannst du aus dieser Erfahrung lernen? Betrachte Krisen als Wachstumschancen.
+5.  **Humor einsetzen**: Nimm das Leben nicht immer zu ernst. Humor ist ein mächtiges Werkzeug, um Anspannung zu lösen und eine positive Perspektive zu bewahren. Suche bewusst nach Gelegenheiten zum Lachen, sei es durch Filme, Witze oder einfach das Teilen lustiger Anekdoten.
+"""
+    else:
+        return """
+**Deine Resilienz: Hohe Widerstandsfähigkeit**
+
+Herzlichen Glückwunsch! Deine hohe Punktzahl zeigt, dass du über eine starke Resilienz verfügst. Du bist gut gerüstet, um mit Rückschlägen und Krisen umzugehen und kannst diese sogar als Chance für Wachstum nutzen. Deine Fähigkeiten in Bereichen wie Selbstwahrnehmung, Problemlösung und sozialen Beziehungen sind gut ausgeprägt.
+
+**Tipps zur Aufrechterhaltung und Weiterentwicklung:**
+
+1.  **Mentoring und Wissensaustausch**: Nutze deine Stärke, um auch anderen zu helfen. Indem du deine Erfahrungen teilst, stärkst du nicht nur dein eigenes Fundament, sondern unterstützt auch dein Umfeld und schaffst ein Netzwerk der gegenseitigen Unterstützung.
+2.  **Aktivität in den Lebensbereichen**: Setze dir bewusst Ziele in Bereichen, die du vielleicht bisher vernachlässigt hast. Ob es darum geht, ein neues Hobby zu beginnen, eine neue Sprache zu lernen oder dich ehrenamtlich zu engagieren – du hast die Fähigkeit, dich anzupassen und zu wachsen.
+3.  **Lebenssinn vertiefen**: Reflektiere, wie deine täglichen Handlungen zu deinem größeren Lebenssinn beitragen. Wenn du eine starke Sinnorientierung hast, kannst du auch die größten Stürme überstehen, ohne dein Ziel aus den Augen zu verlieren.
+4.  **Kreativität als Lebenshaltung**: Nutze deine Kreativität nicht nur zur Problemlösung, sondern auch als Ausdruck deiner Persönlichkeit. Malen, schreiben, Musik machen oder einfach nur das Finden unkonventioneller Wege im Alltag können deine innere Stärke weiter festigen.
+5.  **Humor als Resilienzanker**: Integriere Humor bewusst in deinen Alltag. Lache über dich selbst, teile lustige Momente mit anderen und nutze Humor, um Anspannung zu reduzieren. Humor ist eine der stärksten Waffen gegen Widrigkeiten.
+"""
+
+# --- 4. SEITEN-INHALT RENDERN ---
+
+def render_start_page():
+    # Haupt-Container für die Startseite
+    with st.container():
+        st.title("VitaBoost")
+        st.image("https://placehold.co/1200x400/FFF8E1/E2B060?text=Stärke+deine+Entscheidungen%2C+stärke+dein+Leben")
+        st.markdown("Stärke deine Entscheidungen, stärke dein Leben. Wähle den passenden Pfad für deine Situation.")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### Entscheidungsreise")
+            st.markdown("Strukturiere deine Gedanken und Gefühle, um eine fundierte Entscheidung zu treffen.")
+            st.button("Starte die Entscheidungsreise", on_click=next_page, args=['step_1'])
+
+        with col2:
+            st.markdown("### Werte-Reflexion")
+            st.markdown("Du steckst gerade in einer Krise? Finden wir heraus was deine Resilienzfaktoren sein könnten, um zukünftige Krisen gut bewältigen zu können.")
+            st.button("Starte die Werte-Reflexion", on_click=next_page, args=['wert_reflexion'])
+
+def render_wert_reflexion_page():
+    st.title("Werte-Reflexion & Das große Bild")
+    st.markdown("""
+    Dies ist ein Bereich mit Potenzial, um **deine täglichen Handlungen mit deinen tiefsten Werten und deinem Lebenssinn in Einklang zu bringen**.
+    """)
+
+    st.subheader("Strategien zur Verbesserung:")
+    
+    st.markdown("""
+    **1. Werte identifizieren:**
+    Nehmen Sie sich Zeit, um zu identifizieren, was Ihnen wirklich wichtig ist. Schreiben Sie Ihre zentralen Werte auf, wie z.B. Familie, Ehrlichkeit, Kreativität oder Erfolg.
+    """)
+    
+    st.markdown("""
+    **2. Zusammenhänge verstehen:**
+    Wenn Sie mit einem kleinen Problem konfrontiert sind, versuchen Sie, es in einen größeren Kontext zu stellen. Versuchen Sie, Verhaltensweisen von Menschen oder Ereignisse aus einem anderen Blickwinkel zu betrachten.
+    """)
+    
+    st.markdown("""
+    **3. Sinn finden:**
+    Suchen Sie nach Wegen, wie Sie Ihren Alltag als sinnvoller empfinden können, z.B. indem Sie Ihre Arbeit mit Ihren persönlichen Werten verknüpfen.
+    """)
+    if st.button("Zurück zur Startseite"):
+      next_page('start')
+
+
+def render_step_1():
+    st.title("Step 1: Dein Problem & deine Optionen")
+    
+    # 1. Container für Problem und Kategorie (jetzt an erster Stelle)
+    with st.container():
+        st.markdown("#### Problem und Kategorie")
+        st.session_state.problem = st.text_area(
+            "Was ist die Entscheidung, die dich beschäftigt?",
+            value=st.session_state.problem,
+            key="problem_input",
+            height=100
+        )
+        
+        options = ["Wähle eine Kategorie"] + list(category_content.keys())
+        try:
+            current_index = options.index(st.session_state.problem_category)
+        except ValueError:
+            current_index = 0
+        st.session_state.problem_category = st.selectbox(
+            "Kategorie:",
+            options=options,
+            index=current_index
+        )
+    
+    # 2. Container für die Optionen
+    with st.container():
+        st.markdown("#### Optionen")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.session_state.options[0] = st.text_area("Option A:", value=st.session_state.options[0], height=100, key="option_a_input")
+        with col2:
+            st.session_state.options[1] = st.text_area("Option B:", value=st.session_state.options[1], height=100, key="option_b_input")
+    
+    is_valid = all([st.session_state.problem, st.session_state.options[0], st.session_state.options[1], st.session_state.problem_category != "Wähle eine Kategorie"])
+    if st.button("Weiter", disabled=not is_valid):
+        next_page('step_2')
+
+def render_step_2():
+    st.title("Step 2: Werte & Motivation")
+    selected_category = st.session_state.problem_category
+    all_values = category_content.get(selected_category, {}).get("values", ["Sicherheit", "Freiheit", "Entwicklung"])
+    
+    with st.container():
+        st.markdown(f"#### Psychologische Werte")
+        # Korrigierte Zeile zur korrekten Anzeige des Kategorienamens
+        st.markdown(f"Wähle alle Werte aus, die für deine Entscheidung in der Kategorie **{selected_category}** relevant sind.")
+        
+        # Leere die Liste der ausgewählten Werte, bevor die Checkboxen gerendert werden, um den Zustand korrekt zu aktualisieren
+        st.session_state.selected_values = []
+        cols = st.columns(3) # Erstellt 3 Spalten für die Kontrollkästchen
+        for i, value in enumerate(all_values):
+            col = cols[i % 3] # Verteilt die Checkboxen auf die Spalten
+            if col.checkbox(value, key=f"checkbox_{value}"):
+                st.session_state.selected_values.append(value)
+
+    # Die Schieberegler werden nur angezeigt, wenn Werte ausgewählt wurden
+    if st.session_state.selected_values:
+        with st.container():
+            st.markdown("#### Werte-Bewertung (Deine Entscheidungsmatrix)")
+            st.markdown("Bewerte auf einer Skala von 1 bis 10, wie gut jede Option deine gewählten Werte erfüllt.")
+            st.markdown("Die Punktzahl, die du hier vergibst, **gewichtet** automatisch die Wichtigkeit der Werte für deine endgültige Entscheidung.")
+            for value in st.session_state.selected_values:
+                st.subheader(f"Wert: {value}")
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    st.session_state.values_rating[f"{value}_A"] = st.slider(
+                        f"Option A: {st.session_state.options[0]}",
+                        0, 10, st.session_state.values_rating.get(f"{value}_A", 5), key=f"slider_a_{value}"
+                    )
+                with col_b:
+                    st.session_state.values_rating[f"{value}_B"] = st.slider(
+                        f"Option B: {st.session_state.options[1]}",
+                        0, 10, st.session_state.values_rating.get(f"{value}_B", 5), key=f"slider_b_{value}"
+                    )
+
+    if st.button("Weiter"):
+        # Führe eine abschließende Überprüfung durch
+        if not st.session_state.selected_values:
+            st.warning("Bitte wähle mindestens einen Wert aus, bevor du fortfährst.")
+        else:
+            next_page('step_3')
+    
+def render_step_3():
+    st.title("Step 3: Emotionen & Denkfehler")
+    with st.container():
+        # Der Rote Hut
+        st.markdown("#### Dein Bauchgefühl (Der 'Rote Hut' von Edward de Bono)")
+        st.markdown("Schreibe auf, welche Gefühle und intuitiven Gedanken du zu den Optionen hast. Es geht nicht um Logik, sondern um Emotionen.")
+        st.session_state.emotions = st.text_area("Deine Gedanken:", value=st.session_state.emotions, height=150)
+    
+    selected_content = category_content.get(st.session_state.problem_category, {})
+    biases = selected_content.get("cognitive_biases", {}).get("biases", [])
+    
+    if biases:
+        with st.container():
+            st.markdown("#### Reflektiere über Denkfehler")
+            for bias_title, bias_question in biases:
+                with st.expander(f"**{bias_title}**"):
+                    st.markdown(bias_question)
+
+    # Die "Weiter" Schaltfläche wurde hierher verschoben, um erst nach den Expandern zu erscheinen.
+    if st.button("Weiter"):
+        next_page('step_4')
+
+def render_step_4():
+    st.title("Step 4: Pro/Contra & Zukunft")
+    
+    # Der Gelbe und Schwarze Hut
+    with st.container():
+        st.markdown(f"#### Vorteile (Der 'Gelbe Hut' von Edward de Bono)")
+        st.session_state.pro_a = st.text_area(
+            f"Was spricht für Option A: '{st.session_state.options[0]}'?",
+            value=st.session_state.pro_a,
+            key="pro_a_area", height=150
+        )
+        st.session_state.pro_b = st.text_area(
+            f"Was spricht für Option B: '{st.session_state.options[1]}'?",
+            value=st.session_state.pro_b,
+            key="pro_b_area", height=150
+        )
+    
+    with st.container():
+        st.markdown(f"#### Nachteile (Der 'Schwarze Hut' von Edward de Bono)")
+        st.session_state.contra_a = st.text_area(
+            f"Was spricht gegen Option A: '{st.session_state.options[0]}'?",
+            value=st.session_state.contra_a,
+            key="contra_a_area", height=150
+        )
+        st.session_state.contra_b = st.text_area(
+            f"Was spricht gegen Option B: '{st.session_state.options[1]}'?",
+            value=st.session_state.contra_b,
+            key="contra_b_area", height=150
+        )
+        
+    # Der Grüne Hut
+    with st.container():
+        st.markdown("#### Kreative Optionen (Der 'Grüne Hut' von Edward de Bono)")
+        st.markdown("Gibt es noch andere, unkonventionelle Optionen, die du bisher nicht in Betracht gezogen hast? Schreibe sie hier auf.")
+        st.session_state.creative_options = st.text_area(
+            "Andere Ideen:",
+            value=st.session_state.creative_options,
+            key="creative_options_area", height=150
+        )
+
+    # Regret Minimization Framework
+    with st.container():
+        st.markdown(f"#### Zukunftsszenario (nach Jeff Bezos)")
+        st.markdown("Stelle dir vor, du bist 80 Jahre alt. Welche Entscheidung würdest du am meisten bereuen? Das Regret Minimization Framework hilft dir, aus einer langfristigen Perspektive zu entscheiden.")
+        st.session_state.future_scenario_a = st.text_area(
+            f"Wie sieht dein Leben in 1, 3 und 5 Jahren aus, wenn du dich für Option A entscheidest?",
+            value=st.session_state.future_scenario_a,
+            key="scenario_a", height=200
+        )
+        st.session_state.future_scenario_b = st.text_area(
+            f"Wie sieht dein Leben in 1, 3 und 5 Jahren aus, wenn du dich für Option B entscheidest?",
+            value=st.session_state.future_scenario_b,
+            key="scenario_b", height=200
+        )
+
+    if st.button("Weiter"):
+        next_page('step_5')
+
+def render_step_5():
+    st.title("Step 5: Zusammenfassung")
+    
+    with st.container():
+        st.markdown("#### Übersicht")
+        st.subheader("Deine Entscheidung:")
+        st.info(st.session_state.problem)
+        st.subheader("Deine Optionen:")
+        st.write(f"**Option A:** {st.session_state.options[0]}")
+        st.write(f"**Option B:** {st.session_state.options[1]}")
+
+    if st.session_state.selected_values:
+        with st.container():
+            st.markdown("#### Quantitative Auswertung (nach Werten):")
+            data = []
+            score_a = 0
+            score_b = 0
+            for value in st.session_state.selected_values:
+                rating_a = st.session_state.values_rating.get(f"{value}_A", 0)
+                rating_b = st.session_state.values_rating.get(f"{value}_B", 0)
+                score_a += rating_a
+                score_b += rating_b
+                data.append({
+                    "value": value,
+                    "option": st.session_state.options[0],
+                    "rating": rating_a
+                })
+                data.append({
+                    "value": value,
+                    "option": st.session_state.options[1],
+                    "rating": rating_b
+                })
+            
+            df = pd.DataFrame(data)
+            if not df.empty:
+                chart = alt.Chart(df).mark_bar().encode(
+                    x=alt.X('value', title='Werte'),
+                    y=alt.Y('rating', title='Bewertung (1-10)'),
+                    color=alt.Color('option', legend=alt.Legend(title="Option")),
+                    column=alt.Column('option', header=alt.Header(titleOrient="bottom"))
+                ).properties(
+                    title="Werte-Bewertung im Vergleich"
+                )
+                
+                cols = st.columns([4, 4, 4, 4, 4, 4, 4],width=4000)
+                with cols[0]:
+                    st.altair_chart(chart, use_container_width=True)         
+                
+                # Anzeige der Gesamtpunktzahl
+                st.write(f"**Gesamtpunktzahl Option A:** {score_a}")
+                st.write(f"**Gesamtpunktzahl Option B:** {score_b}")
+
+
+    with st.container():
+        st.markdown("#### Deine Gedanken & Szenarien:")
+        st.write(f"**Vorteile für {st.session_state.options[0]}:**")
+        st.write(st.session_state.pro_a)
+        st.write(f"**Nachteile für {st.session_state.options[0]}:**")
+        st.write(st.session_state.contra_a)
+        st.write(f"**Vorteile für {st.session_state.options[1]}:**")
+        st.write(st.session_state.pro_b)
+        st.write(f"**Nachteile für {st.session_state.options[1]}:**")
+        st.write(st.session_state.contra_b)
+        st.write(f"**Zukunftsszenario {st.session_state.options[0]}:**")
+        st.write(st.session_state.future_scenario_a)
+        st.write(f"**Zukunftsszenario {st.session_state.options[1]}:**")
+        st.write(st.session_state.future_scenario_b)
+
+        if st.session_state.creative_options:
+            st.markdown("#### Weitere Ideen (Der 'Grüne Hut')")
+            st.write(st.session_state.creative_options)
+    
+    with st.container():
+        st.markdown("#### Dein erster konkreter Schritt (Der 'Blaue Hut' & SMART-Ziele)")
+        st.markdown("""
+        Dieser Hut hilft dir, den Prozess zu planen. Um deinen ersten Schritt umsetzbar zu machen, nutze die **SMART-Methode**:
+        - **S**pezifisch: Was genau willst du tun?
+        - **M**essbar: Woran erkennst du, dass du dein Ziel erreicht hast?
+        - **A**ttraktiv: Warum ist dir das Ziel wichtig?
+        - **R**ealistisch: Ist das Ziel erreichbar?
+        - **T**erminiert: Bis wann willst du es umsetzen?
+        """)
+        st.session_state.first_step = st.text_input(
+            "Dein erster konkreter SMART-Schritt:",
+            value=st.session_state.first_step
+        )
+        if st.button("Entscheidung abschließen"):
+            st.success("🎉 Deine Entscheidungsreise wurde abgeschlossen!")
+
+    st.button("Neue Entscheidungsreise starten", on_click=reset_app)
+
+def render_resilience_questions_page():
+    st.title("Resilienz-Fragebogen")
+    st.markdown("Bewerte auf einer Skala von **1 (stimme gar nicht zu)** bis **5 (stimme voll und ganz zu)**, wie sehr die folgenden Aussagen auf dich zutreffen.")
+
+    # Fragen rendern und Antworten speichern
+    for i, question in enumerate(resilience_questions):
+        st.session_state.resilience_answers[i] = st.slider(
+            question,
+            1, 5, st.session_state.resilience_answers.get(i, 3), key=f"resilience_q_{i}"
+        )
+
+    # Weiter-Button zum Anzeigen der Ergebnisse
+    if st.button("Fragebogen abschließen"):
+        # Ladeanzeige, bevor die Seite wechselt
+        with st.spinner("Deine Punktzahl wird berechnet... bitte habe einen kleinen Moment Geduld."):
+            time.sleep(1) # Simulation einer kurzen Ladezeit
+            # Berechne die Gesamtpunktzahl
+            st.session_state.resilience_score = sum(st.session_state.resilience_answers.values())
+        
+        # Wechsle zur Ergebnisseite
+        next_page('resilience_results')
+
+def render_resilience_results_page():
+    st.title("Deine Resilienz-Analyse")
+# NEUE ZEILE: Der Disclaimer wurde hier hinzugefügt
+    st.warning("Disclaimer: Dieser Fragebogen ist ein nicht-klinisches Werkzeug zur Selbsterkenntnis und ersetzt keine professionelle psychologische Beratung.")
+    
+    if st.session_state.resilience_score is None:
+        st.warning("Bitte fülle zuerst den Fragebogen aus.")
+        if st.button("Zum Fragebogen zurückkehren"):
+            next_page('wert_reflexion')
+        return
+
+    # Gesamtergebnis anzeigen
+    total_score = st.session_state.resilience_score
+    max_score = len(resilience_questions) * 5
+    st.markdown(f"**Deine Gesamtpunktzahl:** **{total_score}** von **{max_score}**")
+    
+    # Nutze die vorab definierte Analyse
+    st.session_state.resilience_analysis = get_canned_analysis(total_score, max_score)
+    
+    # Zeige die Analyse an
+    if st.session_state.resilience_analysis:
+        st.markdown(st.session_state.resilience_analysis, unsafe_allow_html=True)
+
+    if st.button("Neue Reflexion starten"):
+        reset_app()
+
+
+def render_bottom_nav():
+    # Render a fixed bottom navigation bar using HTML and CSS
+    nav_html = f"""
+    <div class="bottom-nav">
+        <a href="?page=start" class="nav-item {'active' if st.session_state.page == 'start' else ''}">
+            <span class="icon">🏠</span> Home
+        </a>
+        <a href="?page=step_1" class="nav-item {'active' if st.session_state.page in ['step_1', 'step_2', 'step_3', 'step_4', 'step_5'] else ''}">
+            <span class="icon">🧠</span> Decide
+        </a>
+        <a href="?page=wert_reflexion" class="nav-item {'active' if st.session_state.page in ['wert_reflexion', 'resilience_results'] else ''}">
+            <span class="icon">🧘</span> Reflect
+        </a>
     </div>
+    """
+    st.markdown(nav_html, unsafe_allow_html=True)
 
-    <!-- Untere Navigationsleiste -->
-    <nav class="bottom-nav flex justify-around items-center">
-        <div id="nav-home" class="nav-item active" onclick="goToPage('home-page')">
-            <span class="text-2xl">🏠</span>
-            <span class="text-xs mt-1">Home</span>
-        </div>
-        <div id="nav-decide" class="nav-item" onclick="goToPage('decide-page')">
-            <span class="text-2xl">🧠</span>
-            <span class="text-xs mt-1">Decide</span>
-        </div>
-        <div id="nav-reflect" class="nav-item" onclick="goToPage('resilience-page')">
-            <span class="text-2xl">🧘</span>
-            <span class="text-xs mt-1">Reflect</span>
-        </div>
-        <div id="nav-grow" class="nav-item" onclick="goToPage('health-paths-page')">
-            <span class="text-2xl">🏆</span>
-            <span class="text-xs mt-1">Grow</span>
-        </div>
-        <div id="nav-todo" class="nav-item" onclick="goToPage('todo-page')">
-            <span class="text-2xl">✅</span>
-            <span class="text-xs mt-1">To-Do</span>
-        </div>
-    </nav>
+def main():
+    query_params = st.query_params
+    if 'page' in query_params:
+        st.session_state.page = query_params['page'][0]
 
-    <script>
-        // Anwendungs-Zustand, der alle Daten speichert
-        let appState = {
-            currentPage: 'home-page',
-            decide: {
-                problem: '',
-                category: 'Wähle eine Kategorie',
-                options: ['', ''],
-                selectedValues: [],
-                valuesRating: {},
-                emotions: '',
-                prosA: '', consA: '', prosB: '', consB: '',
-                creativeOptions: '',
-                futureA: '', futureB: '',
-                firstStep: ''
-            },
-            resilience: {
-                questions: [
-                    "Ich bin überzeugt, dass ich mein Leben selbst gestalten kann.",
-                    "Ich kann mich schnell von Rückschlägen erholen.",
-                    "Ich sehe Schwierigkeiten als Herausforderungen an, die ich meistern kann.",
-                    "Ich kann gut mit Unsicherheit umgehen.",
-                    "Ich finde in schwierigen Zeiten Trost und Unterstützung bei anderen."
-                ],
-                answers: {},
-                score: null,
-                analysis: ''
-            },
-            health: {
-                paths: {
-                    'Stressabbau': 0, 'Selbstbild stärken': 0,
-                    'Selbstwirksamkeitserwartung': 0, 'Verbundenheit': 0, 'Konfliktlösung': 0
-                },
-                challenges: {
-                    'Stressabbau': [
-                        "Challenge 1: Atmen Sie tief durch. Expertentipp: Üben Sie 3-4-5 Atmung.",
-                        "Challenge 2: Machen Sie einen 10-minütigen Spaziergang. Expertentipp: Konzentrieren Sie sich auf Ihre Umgebung.",
-                        "Challenge 3: Hören Sie entspannende Musik. Expertentipp: Nutzen Sie binaurale Beats.",
-                        "Challenge 4: Schreiben Sie Ihre Gedanken auf. Expertentipp: Führen Sie ein Dankbarkeitstagebuch.",
-                        "Challenge 5: Gönnen Sie sich eine Pause. Expertentipp: Machen Sie eine 'digitale Entgiftung'.",
-                        "Challenge 6: Sagen Sie 'Nein' zu einer unnötigen Verpflichtung. Expertentipp: Priorisieren Sie Ihre Bedürfnisse.",
-                        "Challenge 7: Machen Sie eine kurze Meditation. Expertentipp: Fokussieren Sie sich auf das Hier und Jetzt.",
-                        "Challenge 8: Trinken Sie ein warmes, beruhigendes Getränk. Expertentipp: Probieren Sie Kamillentee oder Goldene Milch.",
-                        "Challenge 9: Strecken Sie Ihren Körper sanft. Expertentipp: Lösen Sie Verspannungen im Nacken und Schultern.",
-                        "Challenge 10: Planen Sie eine entspannende Aktivität für das Wochenende. Expertentipp: Machen Sie einen Ausflug in die Natur."
-                    ],
-                    'Selbstbild stärken': [
-                        "Challenge 1: Schreiben Sie 3 positive Eigenschaften über sich auf. Expertentipp: Seien Sie ehrlich und wertfrei.",
-                        "Challenge 2: Sagen Sie sich eine positive Affirmation. Expertentipp: Ich bin stark und fähig.",
-                        "Challenge 3: Kleiden Sie sich heute so, dass Sie sich wohlfühlen. Expertentipp: Komfort steigert das Selbstvertrauen.",
-                        "Challenge 4: Machen Sie ein Foto von etwas, das Sie schön finden. Expertentipp: Wertschätzen Sie die Schönheit um Sie herum.",
-                        "Challenge 5: Akzeptieren Sie ein Kompliment ohne Widerrede. Expertentipp: Sagen Sie einfach 'Danke'.",
-                        "Challenge 6: Setzen Sie sich ein kleines, erreichbares Ziel. Expertentipp: Das Gefühl des Erfolgs stärkt Ihr Selbstbild.",
-                        "Challenge 7: Sprechen Sie heute mit einer fremden Person. Expertentipp: Ein kurzes 'Hallo' genügt.",
-                        "Challenge 8: Vergeben Sie sich einen kleinen Fehler. Expertentipp: Selbstmitgefühl ist der Schlüssel.",
-                        "Challenge 9: Machen Sie etwas, das Sie gut können. Expertentipp: Fokussieren Sie sich auf Ihre Stärken.",
-                        "Challenge 10: Reflektieren Sie über Ihre Erfolge in dieser Woche. Expertentipp: Führen Sie ein Erfolgstagebuch."
-                    ],
-                    'Selbstwirksamkeitserwartung': [
-                        "Challenge 1: Identifizieren Sie ein Problem, das Sie lösen können. Expertentipp: Wählen Sie ein kleines Problem.",
-                        "Challenge 2: Erstellen Sie einen einfachen Plan zur Lösung. Expertentipp: Teilen Sie das Problem in kleine Schritte auf.",
-                        "Challenge 3: Beginnen Sie mit dem ersten Schritt. Expertentipp: Machen Sie den Anfang, egal wie klein.",
-                        "Challenge 4: Holen Sie sich Feedback zu Ihrem Plan. Expertentipp: Fragen Sie eine vertrauenswürdige Person.",
-                        "Challenge 5: Erledigen Sie eine Aufgabe, die Sie aufgeschoben haben. Expertentipp: Das Gefühl der Erleichterung ist eine Belohnung.",
-                        "Challenge 6: Üben Sie, eine neue Fähigkeit zu erlernen. Expertentipp: Nehmen Sie sich täglich 15 Minuten Zeit dafür.",
-                        "Challenge 7: Visualisieren Sie den Erfolg. Expertentipp: Stellen Sie sich vor, wie Sie Ihr Ziel erreichen.",
-                        "Challenge 8: Teilen Sie Ihre Fortschritte mit jemandem. Expertentipp: So bleiben Sie motiviert.",
-                        "Challenge 9: Reflektieren Sie, welche Hindernisse Sie überwunden haben. Expertentipp: Erkennen Sie Ihre Resilienz.",
-                        "Challenge 10: Überwinden Sie eine kleine Angst. Expertentipp: Beginnen Sie mit kleinen Expositionen."
-                    ],
-                    'Verbundenheit': [
-                        "Challenge 1: Schicken Sie einer Person, die Ihnen wichtig ist, eine Nachricht. Expertentipp: Eine einfache Geste genügt.",
-                        "Challenge 2: Fragen Sie jemanden, wie sein Tag war. Expertentipp: Zeigen Sie aufrichtiges Interesse.",
-                        "Challenge 3: Geben Sie heute ein echtes Kompliment. Expertentipp: Fokussieren Sie sich auf eine spezifische positive Eigenschaft.",
-                        "Challenge 4: Verbringen Sie Zeit mit einem Freund oder Familienmitglied. Expertentipp: Planen Sie eine Aktivität, die beiden Spaß macht.",
-                        "Challenge 5: Nehmen Sie sich Zeit für ein Gespräch ohne Ablenkungen. Expertentipp: Legen Sie Ihr Handy beiseite.",
-                        "Challenge 6: Schreiben Sie eine Dankeskarte. Expertentipp: Drücken Sie Ihre Wertschätzung schriftlich aus.",
-                        "Challenge 7: Helfen Sie jemandem. Expertentipp: Bieten Sie ungefragt Ihre Hilfe an.",
-                        "Challenge 8: Nehmen Sie Kontakt zu einer alten Bekanntschaft auf. Expertentipp: Erinnern Sie sich an eine gemeinsame positive Erfahrung.",
-                        "Challenge 9: Zeigen Sie jemandem, dass Sie ihn hören. Expertentipp: Wiederholen Sie in eigenen Worten, was die Person gesagt hat.",
-                        "Challenge 10: Machen Sie sich bewusst, wie Sie mit anderen verbunden sind. Expertentipp: Visualisieren Sie Ihr persönliches Netzwerk."
-                    ],
-                    'Konfliktlösung': [
-                        "Challenge 1: Hören Sie jemandem aktiv zu, ohne zu unterbrechen. Expertentipp: Fokus auf die Perspektive des anderen.",
-                        "Challenge 2: Suchen Sie nach Gemeinsamkeiten in einem Konflikt. Expertentipp: Finden Sie gemeinsame Ziele.",
-                        "Challenge 3: Formulieren Sie eine 'Ich-Botschaft'. Expertentipp: Sagen Sie 'Ich fühle mich...' statt 'Du hast...'.",
-                        "Challenge 4: Machen Sie eine Pause, bevor Sie reagieren. Expertentipp: Geben Sie sich 5 Sekunden Bedenkzeit.",
-                        "Challenge 5: Üben Sie, die Gefühle anderer zu benennen. Expertentipp: Sagen Sie 'Ich merke, dass du wütend bist'.",
-                        "Challenge 6: Bieten Sie eine Kompromisslösung an. Expertentipp: Finden Sie eine Lösung, die für beide Seiten akzeptabel ist.",
-                        "Challenge 7: Entschuldigen Sie sich aufrichtig, wenn Sie im Unrecht sind. Expertentipp: Eine echte Entschuldigung zeigt Stärke.",
-                        "Challenge 8: Sprechen Sie ein Problem an, das Sie schon länger beschäftigt. Expertentipp: Wählen Sie den richtigen Zeitpunkt und Ort.",
-                        "Challenge 9: Versuchen Sie, die Situation aus der Sicht der anderen Person zu sehen. Expertentipp: Perspektivenwechsel fördert Empathie.",
-                        "Challenge 10: Finden Sie ein Muster in Ihren Konflikten. Expertentipp: Reflektieren Sie, ob sich Probleme wiederholen."
-                    ]
-                },
-                currentPath: null,
-                trophies: [],
-                totalPoints: 0
-            },
-            todo: {
-                tasks: []
-            }
-        };
+    if st.session_state.page == 'start':
+        render_start_page()
+    elif st.session_state.page == 'step_1':
+        render_step_1()
+    elif st.session_state.page == 'step_2':
+        render_step_2()
+    elif st.session_state.page == 'step_3':
+        render_step_3()
+    elif st.session_state.page == 'step_4':
+        render_step_4()
+    elif st.session_state.page == 'step_5':
+        render_step_5()
+    elif st.session_state.page == 'wert_reflexion':
+        render_resilience_questions_page() # Der neue interaktive Fragebogen
+    elif st.session_state.page == 'resilience_results':
+        render_resilience_results_page() # Die neue Ergebnisseite
+    
+    # Die untere Navigationsleiste wird auf allen Seiten außer der Startseite angezeigt
+    if st.session_state.page not in ['start']:
+        render_bottom_nav()
 
-        // DOM-Elemente
-        const pages = document.querySelectorAll('.page-container');
-        const navItems = document.querySelectorAll('.nav-item');
-        const appContainer = document.getElementById('app-container');
-
-        // Navigationslogik
-        function goToPage(pageId) {
-            appState.currentPage = pageId;
-            renderPage();
-        }
-
-        function renderPage() {
-            pages.forEach(page => {
-                page.classList.remove('active');
-            });
-            navItems.forEach(item => {
-                item.classList.remove('active');
-            });
-
-            document.getElementById(appState.currentPage).classList.add('active');
-            document.querySelector(`#nav-${appState.currentPage.split('-')[0]}`).classList.add('active');
-
-            // Spezifische Render-Funktionen für jede Seite
-            if (appState.currentPage === 'decide-page') {
-                renderDecidePage();
-            } else if (appState.currentPage === 'resilience-page') {
-                renderResiliencePage();
-            } else if (appState.currentPage === 'health-paths-page') {
-                renderHealthPathsPage();
-            } else if (appState.currentPage === 'trophy-gallery-page') {
-                renderTrophyGalleryPage();
-            } else if (appState.currentPage === 'todo-page') {
-                renderTodoPage();
-            }
-        }
-
-        // --- Logik für die Entscheidungsreise ---
-        function renderDecidePage() {
-            // Hier wird der mehrstufige Formularprozess für die Entscheidungsreise gerendert.
-            const decideContainer = document.getElementById('decide-steps');
-            decideContainer.innerHTML = '<h1>Decide Page Coming Soon!</h1>';
-            // Zukünftiger Code würde hier die Formularelemente einfügen und die Eingaben verarbeiten.
-            // Aufgrund der Komplexität wird hier nur ein Platzhalter angezeigt, um die Struktur zu zeigen.
-        }
-
-        // --- Logik für den Resilienz-Fragebogen ---
-        function renderResiliencePage() {
-            const resilienceContainer = document.getElementById('resilience-questions');
-            resilienceContainer.innerHTML = '';
-            
-            appState.resilience.questions.forEach((q, index) => {
-                const questionDiv = document.createElement('div');
-                questionDiv.className = 'bg-gray-50 p-4 rounded-xl shadow-sm';
-                questionDiv.innerHTML = `
-                    <p class="mb-2">${q}</p>
-                    <div class="flex justify-between items-center text-sm text-gray-500">
-                        <span>1</span>
-                        <input type="range" min="1" max="5" value="${appState.resilience.answers[index] || 3}" data-index="${index}" class="w-2/3">
-                        <span>5</span>
-                    </div>
-                `;
-                resilienceContainer.appendChild(questionDiv);
-                
-                questionDiv.querySelector('input').addEventListener('input', (e) => {
-                    appState.resilience.answers[index] = parseInt(e.target.value);
-                });
-            });
-
-            const submitButton = document.createElement('button');
-            submitButton.className = 'w-full p-3 bg-blue-600 text-white font-bold rounded-xl mt-6 hover:bg-blue-700 transition duration-300';
-            submitButton.innerText = 'Fragebogen abschließen';
-            submitButton.addEventListener('click', () => {
-                let score = Object.values(appState.resilience.answers).reduce((sum, val) => sum + val, 0);
-                appState.resilience.score = score;
-                alert(`Dein Resilienz-Score: ${score} von ${appState.resilience.questions.length * 5}`);
-            });
-            resilienceContainer.appendChild(submitButton);
-        }
-
-        // --- Logik für die Gesundheitspfade ---
-        function renderHealthPathsPage() {
-            const pathsContainer = document.getElementById('health-paths-list');
-            pathsContainer.innerHTML = '';
-
-            Object.keys(appState.health.paths).forEach(pathName => {
-                const progress = appState.health.paths[pathName];
-                const isCompleted = progress >= 10;
-                
-                const pathDiv = document.createElement('div');
-                pathDiv.className = `p-4 rounded-xl shadow-md text-center cursor-pointer transition-colors duration-200 ${isCompleted ? 'bg-green-200' : 'bg-blue-200 hover:bg-blue-300'}`;
-                pathDiv.onclick = () => {
-                    if (!isCompleted) {
-                        alert(`Du startest den Pfad: ${pathName}!`);
-                        startHealthChallenge(pathName);
-                    } else {
-                        alert(`Diesen Pfad hast du bereits abgeschlossen!`);
-                    }
-                };
-
-                const progressPercentage = (progress / 10) * 100;
-                pathDiv.innerHTML = `
-                    <h2 class="font-bold text-lg mb-2">${pathName}</h2>
-                    <div class="w-full bg-gray-300 rounded-full h-2.5">
-                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${progressPercentage}%"></div>
-                    </div>
-                    <p class="text-sm mt-1 text-gray-600">${progress} / 10 Challenges</p>
-                `;
-                pathsContainer.appendChild(pathDiv);
-            });
-
-            const trophyButton = document.createElement('button');
-            trophyButton.className = 'w-full p-3 bg-purple-600 text-white font-bold rounded-xl mt-6 hover:bg-purple-700 transition duration-300';
-            trophyButton.innerText = 'Trophäen anzeigen';
-            trophyButton.onclick = () => goToPage('trophy-gallery-page');
-            pathsContainer.appendChild(trophyButton);
-        }
-
-        function startHealthChallenge(pathName) {
-            const challenges = appState.health.challenges[pathName];
-            const currentChallengeIndex = appState.health.paths[pathName];
-            
-            if (currentChallengeIndex < challenges.length) {
-                const challengeText = challenges[currentChallengeIndex];
-                const expertTip = challengeText.split('. Expertentipp: ')[1];
-                const userConfirmed = confirm(`Deine heutige Challenge:\n${challengeText}\n\nAls Belohnung bekommst du 10 Punkte.`);
-                
-                if (userConfirmed) {
-                    appState.health.paths[pathName]++;
-                    appState.health.totalPoints += 10;
-                    alert(`Challenge abgeschlossen! Du hast jetzt ${appState.health.totalPoints} Punkte.`);
-                    
-                    if (appState.health.paths[pathName] === 10) {
-                        alert(`Herzlichen Glückwunsch! Du hast den Pfad '${pathName}' abgeschlossen!`);
-                        appState.health.trophies.push(pathName);
-                        appState.health.totalPoints += 50; // Bonus
-                    }
-                }
-            } else {
-                 alert(`Diesen Pfad hast du bereits abgeschlossen!`);
-            }
-            renderHealthPathsPage(); // UI neu rendern
-        }
-
-        function renderTrophyGalleryPage() {
-            const trophyContainer = document.getElementById('trophy-list');
-            trophyContainer.innerHTML = '';
-            
-            if (appState.health.trophies.length === 0) {
-                trophyContainer.innerHTML = '<p class="text-gray-500">Noch keine Trophäen gesammelt.</p>';
-            } else {
-                appState.health.trophies.forEach(trophy => {
-                    const trophyDiv = document.createElement('div');
-                    trophyDiv.className = 'p-4 rounded-xl bg-yellow-100 shadow-sm';
-                    trophyDiv.innerHTML = `<span class="text-4xl">🏆</span><p class="mt-2 font-bold">${trophy}</p>`;
-                    trophyContainer.appendChild(trophyDiv);
-                });
-            }
-        }
-
-        // --- Logik für die To-Do-Liste ---
-        function renderTodoPage() {
-            const taskList = document.getElementById('taskList');
-            const newTaskInput = document.getElementById('newTaskInput');
-            const addTaskButton = document.getElementById('addTaskButton');
-            const clearTasksButton = document.getElementById('clearTasksButton');
-
-            // UI-Rendering basierend auf dem Zustand
-            taskList.innerHTML = '';
-            appState.todo.tasks.forEach((task, index) => {
-                const li = document.createElement('li');
-                li.className = `flex items-center justify-between p-3 rounded-xl shadow-sm transition duration-300 ${task.completed ? 'bg-green-100 text-gray-400 line-through' : 'bg-gray-50'}`;
-                li.innerHTML = `
-                    <span class="flex-1 truncate">${task.text}</span>
-                    <div class="flex items-center space-x-2">
-                        <button class="complete-btn p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" data-index="${index}" aria-label="Aufgabe abschließen">
-                            <svg class="h-5 w-5 ${task.completed ? 'text-green-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        <button class="delete-btn p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" data-index="${index}" aria-label="Aufgabe löschen">
-                            <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M9 2a1 1 0 011-1h.25a1 1 0 011 1V2a2 2 0 012 2v.25a1 1 0 01-1 1H8a1 1 0 01-1-1V4a2 2 0 012-2zM4 5h12v13a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 2a1 1 0 00-1 1v7a1 1 0 102 0V8a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v7a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                    </div>
-                `;
-                taskList.appendChild(li);
-            });
-
-            // Event-Listener für 'complete' und 'delete'
-            document.querySelectorAll('.complete-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const index = e.currentTarget.dataset.index;
-                    appState.todo.tasks[index].completed = !appState.todo.tasks[index].completed;
-                    renderTodoPage();
-                });
-            });
-
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const index = e.currentTarget.dataset.index;
-                    appState.todo.tasks.splice(index, 1);
-                    renderTodoPage();
-                });
-            });
-
-            // Sichtbarkeit des Löschen-Buttons aktualisieren
-            clearTasksButton.classList.toggle('hidden', appState.todo.tasks.length === 0);
-        }
-
-        // To-Do-Listen-Funktionen
-        document.getElementById('addTaskButton').addEventListener('click', () => {
-            const input = document.getElementById('newTaskInput');
-            const taskText = input.value.trim();
-            if (taskText !== '') {
-                appState.todo.tasks.push({ text: taskText, completed: false });
-                input.value = '';
-                renderTodoPage();
-            }
-        });
-
-        document.getElementById('newTaskInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('addTaskButton').click();
-            }
-        });
-
-        document.getElementById('clearTasksButton').addEventListener('click', () => {
-            appState.todo.tasks = [];
-            renderTodoPage();
-        });
-
-        // App starten
-        document.addEventListener('DOMContentLoaded', () => {
-            renderPage();
-        });
-    </script>
-</body>
-</html>
+main()
