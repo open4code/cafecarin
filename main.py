@@ -1,76 +1,129 @@
-/* Importiert eine schlanke Google-Schriftart für die Benutzeroberfläche */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+# app.py
+# Ein einfaches Python-Backend, das die App-Daten über eine API bereitstellt.
+# Dies ermöglicht eine saubere Trennung von Frontend (HTML/CSS/JS) und Backend (Python).
 
-/* Globale Stile für den Body */
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f0f4f8;
-    color: #1a202c;
-    line-height: 1.6;
-}
+import json
+from flask import Flask, jsonify, send_from_directory
 
-/* Stil für den Haupt-Container der App */
-.container {
-    max-width: 600px;
-    margin: auto;
-    padding: 1.5rem;
-}
+app = Flask(__name__)
 
-/* Stil für die Karten-Elemente */
-.card {
-    background-color: #ffffff;
-    border-radius: 1.5rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
+# Lade die App-Daten aus der JSON-Datei
+# Stellen Sie sicher, dass eine Datei namens 'app_data.json' im selben Ordner existiert.
+try:
+    with open('app_data.json', 'r', encoding='utf-8') as f:
+        app_data = json.load(f)
+except FileNotFoundError:
+    app_data = {"error": "app_data.json not found."}
 
-/* Grundstil für alle Buttons */
-.btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 9999px;
-    font-weight: 600;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    text-align: center;
-}
+@app.route('/')
+def serve_index():
+    """Stellt die Haupt-HTML-Datei der App bereit."""
+    return send_from_directory('.', 'index.html')
 
-/* Hover-Effekt für Buttons */
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
+@app.route('/<path:path>')
+def serve_static(path):
+    """Stellt statische Dateien wie CSS und JS bereit."""
+    return send_from_directory('.', path)
 
-/* Stil für den primären Button */
-.btn-primary {
-    background-color: #6366f1;
-    color: #ffffff;
-}
+@app.route('/api/data')
+def get_app_data():
+    """API-Endpunkt, der die App-Daten als JSON zurückgibt."""
+    return jsonify(app_data)
 
-/* Stil für den sekundären Button */
-.btn-secondary {
-    background-color: #e2e8f0;
-    color: #4a5568;
-}
-
-/* Stil für Trophäen-Badges mit Animation */
-.trophy-badge {
-    font-size: 2rem;
-    animation: bounceIn 0.8s ease-out;
-}
-
-/* Animation, die beim Erscheinen der Trophäe abgespielt wird */
-@keyframes bounceIn {
-    0% { transform: scale(0.3); opacity: 0; }
-    50% { transform: scale(1.1); opacity: 1; }
-    70% { transform: scale(0.9); }
-    100% { transform: scale(1); }
-}
-
-/* Stil für die Nachrichtenbox mit Animation */
-.message-box {
-    animation: fadeIn 0.5s ease-out;
-}
-
-/* Animation, die beim Erscheinen der Nachrichtenbox abgespielt wird */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+if __name__ == '__main__':
+    # Startet den Server im Debug-Modus für die Entwicklung
+    app.run(debug=True)
+{
+    "paths": {
+        "stress": {
+            "title": "Stressabbau",
+            "description": "Lernen Sie in 10 Tagen, Stress zu bewältigen und innere Ruhe zu finden.",
+            "stages": [
+                { "title": "Tag 1: Die Anker-Übung", "description": "Atmen Sie 5x tief in den Bauch und spüren Sie, wie sich jede Anspannung auflöst. Finden Sie Ihren inneren Anker.", "points": 10, "vibrate": true, "message": "Gelassenheit beginnt im Atem. Sie haben den ersten Schritt getan.", "expertTip": "Ein schneller Weg zur Ruhe: Atmen Sie 4 Sekunden lang durch die Nase ein, halten Sie den Atem 7 Sekunden lang an und atmen Sie 8 Sekunden lang durch den Mund aus. Das senkt den Herzschlag und beruhigt sofort." },
+                { "title": "Tag 2: Der Gedankenstopp", "description": "Beobachten Sie einen negativen Gedanken und sagen Sie innerlich 'Stopp'. Ersetzen Sie ihn bewusst durch einen positiven Gedanken.", "points": 15, "vibrate": false, "message": "Sie haben die Kontrolle über Ihre Gedanken. Das ist wahre Stärke.", "expertTip": "Negative Gedanken sind nur Gewohnheiten. Fragen Sie sich: 'Was ist das Gegenteil dieses Gedankens?'" },
+                { "title": "Tag 3: Das 5-Minuten-Journal", "description": "Schreiben Sie 5 Minuten lang alles auf, was Sie belastet, um es aus Ihrem Kopf zu bekommen.", "points": 10, "vibrate": false, "message": "Was auf dem Papier steht, muss nicht mehr in Ihrem Kopf kreisen.", "expertTip": "Das Aufschreiben von Problemen schafft Distanz. Es ermöglicht Ihnen, die Situation von außen zu betrachten, anstatt sich emotional darin zu verfangen." },
+                { "title": "Tag 4: Progressiver Muskelentspannung", "description": "Spannen Sie eine Muskelgruppe (z.B. Fäuste) 10 Sekunden lang an und entspannen Sie sie dann bewusst.", "points": 20, "vibrate": true, "message": "Spannung und Entspannung sind zwei Seiten einer Medaille.", "expertTip": "Der Kontrast zwischen Anspannung und Entspannung hilft Ihrem Körper, zu lernen, wie sich tiefe Entspannung anfühlt. Dies ist eine wichtige Fähigkeit, um Stress abzubauen." },
+                { "title": "Tag 5: Sinneswahrnehmung", "description": "Konzentrieren Sie sich für 5 Minuten nur auf einen Sinn: Was sehen, hören oder riechen Sie gerade?", "points": 15, "vibrate": false, "message": "Der gegenwärtige Moment ist Ihr friedlichster Ort.", "expertTip": "Diese Übung nennt man Achtsamkeit. Sie hilft, den Fokus vom Gedankenstrom auf das Hier und Jetzt zu lenken und reduziert so die innere Unruhe." },
+                { "title": "Tag 6: Reframing", "description": "Denken Sie an ein kleines Problem. Was könnte daran auch eine positive Seite haben? Finden Sie einen neuen Blickwinkel.", "points": 10, "vibrate": false, "message": "Jede Wolke hat einen silbernen Rand, wenn man genau hinsieht.", "expertTip": "Das Reframing ändert nicht die Situation, aber Ihre Einstellung dazu. Das ist ein mächtiges Werkzeug, um Ihre Resilienz zu stärken." },
+                { "title": "Tag 7: Digital Detox", "description": "Legen Sie Ihr Smartphone für 30 Minuten bewusst beiseite und genießen Sie die Stille.", "points": 20, "vibrate": false, "message": "Wahre Verbindung findet nicht auf Bildschirmen statt.", "expertTip": "Ständige Benachrichtigungen können das Stresshormon Cortisol erhöhen. Eine digitale Pause gibt Ihrem Geist die Möglichkeit, sich zu erholen und neu zu kalibrieren." },
+                { "title": "Tag 8: Visualisierungs-Reise", "description": "Stellen Sie sich einen Ort vor, an dem Sie sich sicher und wohl fühlen, und bleiben Sie 3 Minuten gedanklich dort.", "points": 25, "vibrate": true, "message": "Ihr innerer Rückzugsort ist immer für Sie da.", "expertTip": "Die Visualisierung aktiviert dieselben Gehirnregionen wie eine tatsächliche Erfahrung. Das macht sie zu einem effektiven mentalen Training für Entspannung." },
+                { "title": "Tag 9: Freundliche Geste", "description": "Machen Sie jemandem eine kleine Freude. Geben und empfangen Sie Positivität.", "points": 15, "vibrate": false, "message": "Andere glücklich zu machen, macht auch uns selbst glücklich.", "expertTip": "Freundliche Handlungen setzen Endorphine frei, die nicht nur dem Empfänger, sondern auch Ihnen selbst ein Gefühl des Wohlbefindens schenken." },
+                { "title": "Tag 10: Der Gelassenheits-Anker", "description": "Nehmen Sie sich heute bewusst Zeit, um das Erlernte anzuwenden, wenn eine stressige Situation auftritt.", "points": 30, "vibrate": true, "message": "Sie haben Ihren Pfad gemeistert. Die Gelassenheit ist nun in Ihnen verankert.", "expertTip": "Resilienz ist eine Fähigkeit, die durch Übung wächst. Wenden Sie die Werkzeuge, die Sie hier gelernt haben, regelmäßig an, um Ihre Gelassenheit zu festigen." }
+            ]
+        },
+        "self-image": {
+            "title": "Selbstbild stärken",
+            "description": "Stärken Sie Ihr Selbstwertgefühl und Ihr Vertrauen in 10 Tagen.",
+            "stages": [
+                { "title": "Tag 1: Die Spiegel-Übung", "description": "Stellen Sie sich vor einen Spiegel und sagen Sie: 'Ich bin wertvoll'. Wiederholen Sie dies 3x.", "points": 10, "vibrate": false, "message": "Ihre wahre Stärke kommt von innen. Sie haben sie gerade entfesselt.", "expertTip": "Das Sprechen positiver Affirmationen vor dem Spiegel kann helfen, die Verbindung zwischen Ihrem Verstand und Ihrem Herzen zu stärken und Selbstzweifel zu überwinden." },
+                { "title": "Tag 2: Journal der Wertschätzung", "description": "Schreiben Sie 5 Dinge auf, die Sie an Ihrem Charakter oder Ihren Fähigkeiten schätzen.", "points": 15, "vibrate": false, "message": "Ihre Qualitäten machen Sie einzigartig und wertvoll.", "expertTip": "Das Führen eines Dankbarkeitsjournals für sich selbst hilft Ihnen, Ihre Erfolge und Stärken bewusst wahrzunehmen und zu feiern." },
+                { "title": "Tag 3: Nein-Sagen", "description": "Sagen Sie heute einmal bewusst 'Nein' zu etwas, das Sie nicht tun möchten. Spüren Sie die Grenze.", "points": 15, "vibrate": true, "message": "Ihre Grenzen zu kennen, ist ein Zeichen von Selbstachtung.", "expertTip": "Gesunde Grenzen sind essenziell für ein starkes Selbstbild. Sie signalisieren anderen und sich selbst, dass Ihre Bedürfnisse wichtig sind." },
+                { "title": "Tag 4: Komplimente annehmen", "description": "Wenn Ihnen jemand ein Kompliment macht, sagen Sie nur 'Danke', ohne es zu relativieren.", "points": 10, "vibrate": false, "message": "Sie sind es wert, Anerkennung zu erhalten.", "expertTip": "Ein Kompliment anzunehmen, ohne es kleinzureden, ist eine Form von Selbstakzeptanz. Es zeigt, dass Sie sich selbst als würdig für Lob ansehen." },
+                { "title": "Tag 5: Der Held Ihrer Geschichte", "description": "Beschreiben Sie eine Situation, in der Sie eine Herausforderung gemeistert haben. Sehen Sie sich als den Helden dieser Geschichte.", "points": 20, "vibrate": false, "message": "Sie haben bereits bewiesen, wie stark Sie sind.", "expertTip": "Indem Sie Ihre Erfolge bewusst in den Vordergrund rücken, trainieren Sie Ihr Gehirn, sich auf Ihre Stärken und Fähigkeiten zu konzentrieren anstatt auf Ihre Schwächen." },
+                { "title": "Tag 6: Grenzen setzen", "description": "Denken Sie über eine Situation nach, in der Sie sich überfordert fühlen. Überlegen Sie, welche Grenze Sie setzen könnten.", "points": 15, "vibrate": false, "message": "Grenzen schützen Ihre Energie und Ihren Wert.", "expertTip": "Das Setzen von Grenzen ist eine aktive Form der Selbstfürsorge. Es ist nicht egoistisch, sondern notwendig, um Burnout zu vermeiden und Ihr Wohlbefinden zu sichern." },
+                { "title": "Tag 7: Verzeihen", "description": "Verzeihen Sie sich einen kleinen Fehler, den Sie kürzlich gemacht haben. Jeder macht Fehler.", "points": 20, "vibrate": true, "message": "Das Annehmen von Fehlern ist der erste Schritt zum inneren Frieden.", "expertTip": "Die Fähigkeit, sich selbst zu verzeihen, ist eine der wichtigsten Säulen eines gesunden Selbstbildes. Es erlaubt Ihnen, zu wachsen und sich weiterzuentwickeln, ohne von der Vergangenheit belastet zu werden." },
+                { "title": "Tag 8: Die Selbstfürsorge-Liste", "description": "Schreiben Sie 3 Dinge auf, die Sie nur für sich selbst tun und die Ihnen Freude bereiten.", "points": 10, "vibrate": false, "message": "Sie sind die wichtigste Person in Ihrem Leben.", "expertTip": "Selbstfürsorge ist nicht Luxus, sondern eine Notwendigkeit. Sie tanken Ihre Energie wieder auf, was es Ihnen ermöglicht, auch für andere da zu sein." },
+                { "title": "Tag 9: Positive Bestätigung", "description": "Wiederholen Sie den Satz 'Ich habe genug' (I am enough) 10x vor dem Schlafengehen.", "points": 15, "vibrate": false, "message": "Sie sind gut, so wie Sie sind. Das ist die absolute Wahrheit.", "expertTip": "Wiederholung ist der Schlüssel zur Veränderung. Affirmationen helfen, neue neuronale Pfade im Gehirn zu schaffen, die Ihr Selbstvertrauen stärken." },
+                { "title": "Tag 10: Die eigene Wert-Bilanz", "description": "Schreiben Sie alle Ihre Erfolge auf. Groß und klein. Und lassen Sie es auf sich wirken.", "points": 30, "vibrate": true, "message": "Ihr Selbstwert ist unerschütterlich. Sie haben den Gipfel erreicht.", "expertTip": "Das Führen einer Erfolgsbilanz ist ein wirksames Mittel, um die eigene Wahrnehmung zu steuern und sich auf die eigenen Stärken zu besinnen, auch in schwierigen Zeiten." }
+            ]
+        },
+        "self-efficacy": {
+            "title": "Selbstwirksamkeitserwartung",
+            "description": "Entwickeln Sie in 10 Tagen das Vertrauen, Ihre Ziele zu meistern.",
+            "stages": [
+                { "title": "Tag 1: Das kleine Ziel", "description": "Setzen Sie sich ein winziges Ziel, das Sie heute sicher erreichen können (z.B. 2 Minuten aufräumen).", "points": 10, "vibrate": false, "message": "Ein kleiner Schritt ist der Anfang jeder großen Reise.", "expertTip": "Mikro-Erfolge sind der Treibstoff für Selbstwirksamkeit. Jedes kleine Ziel, das Sie erreichen, stärkt Ihr Gehirn, um größere Herausforderungen anzunehmen." },
+                { "title": "Tag 2: Das Erfolgstagebuch", "description": "Schreiben Sie am Ende des Tages einen kleinen Erfolg auf, den Sie erzielt haben.", "points": 15, "vibrate": false, "message": "Jeder Erfolg, ob groß oder klein, zählt.", "expertTip": "Wenn Sie Ihre täglichen Erfolge bewusst festhalten, trainieren Sie Ihren Verstand, sich auf Ihre Fähigkeiten und Errungenschaften zu konzentrieren anstatt auf Ihre Schwächen." },
+                { "title": "Tag 3: Das Warum", "description": "Überlegen Sie, warum Ihnen ein bestimmtes Ziel wichtig ist. Was ist Ihr persönlicher Grund dafür?", "points": 15, "vibrate": false, "message": "Wenn Ihr 'Warum' stark genug ist, finden Sie immer einen Weg.", "expertTip": "Ein klares 'Warum' gibt Ihnen die nötige Motivation und Widerstandsfähigkeit, um Hindernisse zu überwinden. Es ist Ihre innere Antriebskraft." },
+                { "title": "Tag 4: Visualisierung", "description": "Stellen Sie sich vor, wie Sie ein Ziel erfolgreich erreichen. Spüren Sie das Gefühl des Erfolgs.", "points": 20, "vibrate": true, "message": "Glauben Sie an sich, und Sie haben es schon halb geschafft.", "expertTip": "Die Visualisierung bereitet Ihr Gehirn auf den Erfolg vor. Sie stärkt das Selbstvertrauen, indem sie das Gefühl des Gelingens schon vor der tatsächlichen Umsetzung verinnerlicht." },
+                { "title": "Tag 5: Die Teilschritte", "description": "Brechen Sie ein großes Ziel in 5 kleine, machbare Schritte herunter.", "points": 10, "vibrate": false, "message": "Ein großer Berg wird Schritt für Schritt bezwungen.", "expertTip": "Das Aufteilen von Zielen macht sie weniger einschüchternd. Konzentrieren Sie sich immer nur auf den nächsten kleinen Schritt, und die Reise wird machbar." },
+                { "title": "Tag 6: Mentale Generalprobe", "description": "Üben Sie eine schwierige Situation in Gedanken. Überlegen Sie, wie Sie souverän reagieren würden.", "points": 15, "vibrate": false, "message": "Ihr Geist ist Ihr stärkster Trainingspartner.", "expertTip": "Mentale Vorbereitung hilft Ihnen, in der realen Situation gelassener und selbstsicherer zu reagieren, da Sie die Herausforderung bereits in Gedanken gemeistert haben." },
+                { "title": "Tag 7: Fehler als Lektion", "description": "Erinnern Sie sich an einen Fehler. Was haben Sie daraus gelernt? Ein Fehler ist nur eine Chance zu wachsen.", "points": 20, "vibrate": false, "message": "Kein Scheitern, nur Feedback.", "expertTip": "Die Fähigkeit, aus Fehlern zu lernen, ist ein entscheidender Aspekt der Selbstwirksamkeit. Es geht nicht darum, perfekt zu sein, sondern darum, sich kontinuierlich zu verbessern." },
+                { "title": "Tag 8: Stärken-Liste", "description": "Listen Sie 5 Fähigkeiten auf, die Ihnen in der Vergangenheit geholfen haben, Ziele zu erreichen.", "points": 15, "vibrate": false, "message": "Ihr Erfolg ist kein Zufall, sondern das Ergebnis Ihrer Stärken.", "expertTip": "Indem Sie sich Ihrer Stärken bewusst werden, können Sie diese gezielt einsetzen, um Ihre Ziele zu erreichen. Stärken sind Ihre wertvollsten Werkzeuge." },
+                { "title": "Tag 9: Die Affirmation", "description": "Sprechen Sie den Satz 'Ich kann das' 10x laut aus, um Ihren Glauben an sich selbst zu stärken.", "points": 25, "vibrate": true, "message": "Glaube versetzt Berge.", "expertTip": "Positive Selbstgespräche können Ihre Gehirnfunktion verändern und Ihr Vertrauen in Ihre eigenen Fähigkeiten steigern." },
+                { "title": "Tag 10: Der erste Schritt", "description": "Beginnen Sie heute mit dem ersten Schritt zu einem Ziel, das Sie schon lange aufschieben.", "points": 30, "vibrate": true, "message": "Sie haben bewiesen, dass Sie in der Lage sind, Ihre Ziele zu erreichen.", "expertTip": "Der erste Schritt ist oft der schwerste, aber auch der wichtigste. Er setzt die positive Kaskade der Selbstwirksamkeit in Gang." }
+            ]
+        },
+        "connectedness": {
+            "title": "Verbundenheit",
+            "description": "Stärken Sie Ihre Beziehungen und Ihre Verbundenheit in 10 Tagen.",
+            "stages": [
+                { "title": "Tag 1: Freundliche Geste", "description": "Schenken Sie jemandem, den Sie heute treffen, ein ehrliches Kompliment oder ein Lächeln.", "points": 10, "vibrate": false, "message": "Eine kleine Geste kann eine große Welle der Positivität auslösen.", "expertTip": "Positive Interaktionen mit anderen stärken nicht nur Ihre Beziehung zu ihnen, sondern steigern auch Ihr eigenes Wohlbefinden und Ihre Stimmung." },
+                { "title": "Tag 2: Der Dankbarkeitsanruf", "description": "Rufen Sie eine Person an, der Sie dankbar sind, und sagen Sie ihr das.", "points": 15, "vibrate": false, "message": "Dankbarkeit ist eine Brücke, die Herzen verbindet.", "expertTip": "Das Ausdrücken von Dankbarkeit stärkt die soziale Verbundenheit und hat nachweislich positive Effekte auf die psychische Gesundheit." },
+                { "title": "Tag 3: Aktives Zuhören", "description": "Führen Sie ein Gespräch, in dem Sie bewusst mehr zuhören, als selbst zu reden.", "points": 20, "vibrate": false, "message": "Wenn Sie wirklich zuhören, hören Sie auch mit dem Herzen.", "expertTip": "Aktives Zuhören ist eine der wichtigsten Fähigkeiten, um Vertrauen und Nähe in Beziehungen aufzubauen. Es zeigt, dass Sie die andere Person wirklich verstehen wollen." },
+                { "title": "Tag 4: Gemeinsame Aktivität", "description": "Planen Sie eine kleine Aktivität mit einem Freund oder Familienmitglied. Es muss nichts Großes sein.", "points": 15, "vibrate": true, "message": "Geteilte Zeit ist die wertvollste Währung in Beziehungen.", "expertTip": "Gemeinsame Erlebnisse schaffen bleibende Erinnerungen und stärken das Gefühl der Zugehörigkeit." },
+                { "title": "Tag 5: Die Helfer-Rolle", "description": "Bieten Sie jemandem Ihre Hilfe an, auch wenn es nur eine kleine Sache ist.", "points": 10, "vibrate": false, "message": "Helfen schafft Verbundenheit und stärkt die Gemeinschaft.", "expertTip": "Das Geben ist genauso wichtig wie das Nehmen. Helfen Sie anderen, und Sie werden ein tieferes Gefühl von Sinn und Zugehörigkeit erfahren." },
+                { "title": "Tag 6: 'Ich'-Botschaften", "description": "Wenn Sie sich unwohl fühlen, üben Sie, eine Ich-Botschaft zu formulieren, um sich auszudrücken (z.B. 'Ich fühle mich...').", "points": 20, "vibrate": false, "message": "Ehrlichkeit öffnet Türen zu tieferen Beziehungen.", "expertTip": "Ich-Botschaften helfen Ihnen, Ihre Gefühle auszudrücken, ohne der anderen Person Vorwürfe zu machen. Das reduziert Konflikte und fördert ein offenes Gespräch." },
+                { "title": "Tag 7: Empathie-Übung", "description": "Stellen Sie sich vor, wie sich eine andere Person in einer Situation fühlen könnte. Versuchen Sie, ihre Perspektive einzunehmen.", "points": 25, "vibrate": true, "message": "Empathie ist der Schlüssel zur Verbindung mit anderen.", "expertTip": "Die Fähigkeit, sich in andere hineinzuversetzen, ist eine Grundvoraussetzung für bedeutungsvolle Beziehungen. Sie hilft, Missverständnisse zu überwinden und echte Verbundenheit zu schaffen." },
+                { "title": "Tag 8: Positive Erinnerungen", "description": "Denken Sie an 3 schöne gemeinsame Erinnerungen mit einer Person, die Ihnen wichtig ist.", "points": 15, "vibrate": false, "message": "Die Brücken zu unserer Vergangenheit stärken unsere Gegenwart.", "expertTip": "Das bewusste Erinnern an positive Momente stärkt die Bindungen zu unseren Mitmenschen und ruft ein Gefühl von Wärme und Dankbarkeit hervor." },
+                { "title": "Tag 9: Online-Detox", "description": "Verzichten Sie für eine Stunde auf soziale Medien und rufen Sie stattdessen jemanden an.", "points": 15, "vibrate": false, "message": "Echte Beziehungen brauchen keine Likes.", "expertTip": "Echte menschliche Interaktion ist unersetzlich. Ein kurzes Telefongespräch kann mehr Verbundenheit schaffen als hundert Nachrichten." },
+                { "title": "Tag 10: Die offene Einladung", "description": "Laden Sie heute einen neuen Kontakt zu einem Kaffee oder einem Spaziergang ein.", "points": 30, "vibrate": true, "message": "Sie haben den Pfad gemeistert. Ihre Verbundenheit ist nun stärker als je zuvor.", "expertTip": "Das proaktive Suchen nach neuen Verbindungen ist ein Zeichen von Stärke. Es erweitert Ihren Kreis und Ihr Unterstützungsnetzwerk." }
+            ]
+        },
+        "conflict-resolution": {
+            "title": "Konfliktlösung",
+            "description": "Lernen Sie in 10 Tagen, Konflikte konstruktiv zu lösen und Beziehungen zu stärken.",
+            "stages": [
+                { "title": "Tag 1: Die 24-Stunden-Regel", "description": "Wenn ein Konflikt aufkommt, warten Sie 24 Stunden, bevor Sie darüber sprechen. Das beruhigt die Emotionen.", "points": 10, "vibrate": false, "message": "Ein kühler Kopf ist der beste Berater.", "expertTip": "Eile im Konflikt führt oft zu impulsiven Reaktionen. Das Abwarten gibt beiden Seiten Zeit, über das Geschehene nachzudenken und eine rationalere Lösung zu finden." },
+                { "title": "Tag 2: 'Ich'-Botschaften", "description": "Formulieren Sie ein Problem mit einer 'Ich'-Botschaft (z.B. 'Ich fühle mich...') anstatt mit einer 'Du'-Botschaft ('Du machst immer...').", "points": 15, "vibrate": false, "message": "Ihre Gefühle sind Ihr Ausdruck, nicht der Vorwurf an jemand anderen.", "expertTip": "Ich-Botschaften sind der Grundstein für eine gewaltfreie Kommunikation. Sie vermeiden Schuldzuweisungen und fördern Empathie." },
+                { "title": "Tag 3: Aktives Zuhören", "description": "Hören Sie Ihrem Gegenüber wirklich zu, ohne zu unterbrechen. Fassen Sie dann in eigenen Worten zusammen, was Sie gehört haben.", "points": 20, "vibrate": false, "message": "Verständnis beginnt mit Zuhören.", "expertTip": "Indem Sie das Gesagte wiederholen, zeigen Sie nicht nur, dass Sie zugehört haben, sondern stellen auch sicher, dass Sie die Botschaft korrekt verstanden haben." },
+                { "title": "Tag 4: Perspektivenwechsel", "description": "Versuchen Sie, die Situation aus der Sicht der anderen Person zu sehen. Warum könnten sie so reagieren?", "points": 15, "vibrate": true, "message": "Jeder hat seine eigene Geschichte. Versuchen Sie, die andere Seite zu verstehen.", "expertTip": "Die Fähigkeit, die Perspektive zu wechseln, ist der Schlüssel zur Empathie. Sie hilft, die Gründe für das Verhalten anderer zu erkennen und weniger verurteilend zu sein." },
+                { "title": "Tag 5: Gemeinsame Basis finden", "description": "Suchen Sie nach einem Punkt, in dem Sie beide übereinstimmen. Das kann ein gemeinsames Ziel oder ein Wert sein.", "points": 10, "vibrate": false, "message": "Gemeinsamkeiten sind die Brücke über den Konfliktgraben.", "expertTip": "Das Hervorheben von Gemeinsamkeiten hilft, die Kluft zwischen den Parteien zu überbrücken und eine 'Wir'-Haltung statt einer 'Ich gegen Dich'-Haltung zu schaffen." },
+                { "title": "Tag 6: Kompromiss suchen", "description": "Finden Sie eine Lösung, die für beide Seiten akzeptabel ist, auch wenn es nicht die perfekte Lösung ist.", "points": 20, "vibrate": false, "message": "Ein guter Kompromiss ist, wenn beide Seiten das Gefühl haben, etwas erreicht zu haben.", "expertTip": "Kompromisse erfordern Flexibilität. Sie zeigen, dass Sie bereit sind, auf die Bedürfnisse der anderen Person einzugehen, was die Beziehung stärkt." },
+                { "title": "Tag 7: Ruhe bewahren", "description": "Wenn Sie merken, dass Sie emotional werden, machen Sie eine kurze Pause. Gehen Sie einen Schritt zurück und atmen Sie tief durch.", "points": 25, "vibrate": true, "message": "Ruhe ist Ihre Superkraft im Konflikt.", "expertTip": "Eine emotionale Pause, auch Time-out genannt, verhindert Eskalationen. Sie gibt Ihnen die Möglichkeit, sich zu beruhigen und die Situation mit klarem Verstand zu betrachten." },
+                { "title": "Tag 8: Verzeihen", "description": "Arbeiten Sie daran, eine Verletzung loszulassen, um Groll zu vermeiden. Verzeihen Sie, um sich selbst zu befreien.", "points": 15, "vibrate": false, "message": "Vergeben heißt nicht vergessen, sondern innerlich loslassen.", "expertTip": "Vergeben ist eine Entscheidung, die Sie für sich selbst treffen. Es befreit Sie von der Last der Wut und ermöglicht es Ihnen, emotional voranzukommen." },
+                { "title": "Tag 9: Das Ende des Konflikts", "description": "Wenn der Konflikt gelöst ist, danken Sie der Person für ihre Offenheit. Das stärkt die Beziehung für die Zukunft.", "points": 15, "vibrate": false, "message": "Ein guter Abschluss festigt die Verbundenheit.", "expertTip": "Die Anerkennung des Bemühens der anderen Person, den Konflikt zu lösen, stärkt die Bindung und schafft eine positive Grundlage für zukünftige Interaktionen." },
+                { "title": "Tag 10: Die Reflexion", "description": "Denken Sie über einen kürzlich gelösten Konflikt nach. Was haben Sie daraus gelernt? Was können Sie beim nächsten Mal besser machen?", "points": 30, "vibrate": true, "message": "Sie haben einen wichtigen Meilenstein erreicht. Ihre Fähigkeit zur Konfliktlösung ist jetzt eine Stärke.", "expertTip": "Die Reflexion ist entscheidend für persönliches Wachstum. Indem Sie aus vergangenen Konflikten lernen, rüsten Sie sich für die Herausforderungen der Zukunft." }
+            ]
+        }
+    },
+    "trophies": [
+        { "id": "path-trophy-stress", "name": "Pfad-Pionier: Stressabbau", "description": "Den Stressabbau-Pfad erfolgreich abgeschlossen.", "pointsNeeded": 100, "icon": "🏆" },
+        { "id": "path-trophy-self-image", "name": "Pfad-Pionier: Selbstbild", "description": "Den Selbstbild-Pfad erfolgreich abgeschlossen.", "pointsNeeded": 120, "icon": "✨" },
+        { "id": "path-trophy-self-efficacy", "name": "Pfad-Pionier: Selbstwirksamkeit", "description": "Den Selbstwirksamkeits-Pfad erfolgreich abgeschlossen.", "pointsNeeded": 120, "icon": "🎯" },
+        { "id": "path-trophy-connectedness", "name": "Pfad-Pionier: Verbundenheit", "description": "Den Verbundenheits-Pfad erfolgreich abgeschlossen.", "pointsNeeded": 110, "icon": "❤️" },
+        { "id": "path-trophy-conflict-resolution", "name": "Pfad-Pionier: Konfliktlösung", "description": "Den Konfliktlösungs-Pfad erfolgreich abgeschlossen.", "pointsNeeded": 115, "icon": "🤝" },
+        { "id": "milestone-100", "name": "Meilenstein: 100 Punkte", "description": "100 Punkte erreicht.", "pointsNeeded": 100, "icon": "🥇" },
+        { "id": "milestone-200", "name": "Meilenstein: 200 Punkte", "description": "200 Punkte erreicht.", "pointsNeeded": 200, "icon": "🥈" },
+        { "id": "milestone-500", "name": "Meilenstein: 500 Punkte", "description": "500 Punkte erreicht.", "pointsNeeded": 500, "icon": "👑" }
+    ]
 }
