@@ -1457,4 +1457,3 @@ def main():
 if __name__ == \"__main__\":
     main()
 "
-Observation: Create successful: /app/streamlit_app.py
