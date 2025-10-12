@@ -1,5 +1,3 @@
- Ich erstelle jetzt die erweiterte Streamlit-App mit dem kompletten Resilienz-Pfad als neue Datei. Die App wird alle bestehenden Funktionen behalten und die neuen Resilienz-Pfade hinzufügen.
-Action: file_editor create /app/streamlit_app.py --file-text "# -*- coding: utf-8 -*-
 # Python script for a Streamlit application with three distinct modules.
 # Module 1: A \"Decision Journey\" tool that helps analyze pros and cons.
 # Module 2: A \"Resilience Reflection\" guide based on user input.
