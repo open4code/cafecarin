@@ -3,3 +3,5 @@ pandas
 altair
 json
 base64
+requests
+time
