@@ -839,9 +839,6 @@ CHALLENGE_DATA = {
                 "motivation": "Bewusstsein ist der erste Schritt zur Veränderung. Du schaust mutig hin!",
                 "points": 10
             },
-            # Weitere Tage folgen hier ...
-        }
-      },
             2: {
                 "title": "Innerer Kritiker vs. innerer Unterstützer",
                 "exercise": "Identifiziere eine Situation, in der dein innerer Kritiker laut war. Was hat er gesagt? Schreibe eine Antwort von deinem inneren Unterstützer.",
@@ -905,9 +902,9 @@ CHALLENGE_DATA = {
                 "motivation": "🎉 Du hast ein stärkeres Selbstbild entwickelt! Du siehst dich jetzt mit freundlicheren Augen.",
                 "points": 10
             }
-        } # HIER ENDET DAS 'days'-Dictionary (Wichtig: Das Komma nach der Klammer)
-      }, # HIER ENDET DAS "Selbstbild stärken"-Dictionary (Wichtig: Das Komma nach der Klammer)
-    "Verbundenheit": { # HIER BEGINNT DIE NEUE KATEGORIE
+        } # Ende 'days'
+    }, # Ende "Selbstbild stärken"
+    "Verbundenheit": {
         "icon": "🤝",
         "description": "Baue tiefere und bedeutungsvollere Beziehungen auf, indem du lernst, aktiv zuzuhören, Grenzen zu setzen und Verletzlichkeit zu zeigen.",
         "color": "#2196F3",  # Blau
@@ -983,165 +980,166 @@ CHALLENGE_DATA = {
                 "motivation": "🎉 Du hast Verbundenheit vertieft! Du weißt jetzt, wie du echte Nähe aufbaust.",
                 "points": 10
             }
-        }
-    }
-};
-  "Optimismus": {
+        } # Ende 'days'
+    }, # Ende "Verbundenheit"
+    "Optimismus": {
         "icon": "☀️",
-        "description": "Kultiviere eine positive Lebenseinstellung ohne Realitätsverlust",
-        "color": "#FFEB3B",
+        "description": "Kultiviere eine positive Lebenseinstellung ohne Realitätsverlust.",
+        "color": "#FFEB3B", # Gelb
         "expert_tip": "Optimismus bedeutet nicht, Probleme zu ignorieren, sondern zu glauben, dass Lösungen gefunden werden können. Es ist die Überzeugung, dass Schwierigkeiten vorübergehend sind und dass Sie die Ressourcen haben, sie zu meistern.",
         "days": {
-            "1": {
+            1: {
                 "title": "Dankbarkeits-Ritual",
                 "exercise": "Schreibe jeden Abend diese Woche 3 Dinge auf, für die du heute dankbar bist. Auch winzige Dinge zählen.",
                 "reflection": "Wie verändert diese Praxis deinen Blick auf den Tag? Was fällt dir auf?",
                 "motivation": "Dankbarkeit trainiert dein Gehirn auf Positives. Du legst das Fundament für Optimismus!",
                 "points": 10
             },
-            "2": {
+            2: {
                 "title": "Positive Umdeutung",
                 "exercise": "Denke an eine aktuelle Herausforderung. Finde 3 mögliche positive Aspekte oder Lernchancen darin.",
                 "reflection": "Wie verändert sich deine Emotion zur Herausforderung durch diese Perspektive?",
                 "motivation": "Du lernst, in Problemen Chancen zu sehen. Das ist die Essenz von Optimismus!",
                 "points": 10
             },
-            "3": {
+            3: {
                 "title": "Best-Case-Szenario",
                 "exercise": "Für eine Situation, vor der du Angst hast, male dir das best-mögliche Szenario aus. Was wäre, wenn alles gut geht?",
                 "reflection": "Wie realistisch ist dieses positive Szenario? Wie fühlt es sich an, es dir vorzustellen?",
                 "motivation": "Du gibst deinem Gehirn Erlaubnis, positive Ausgänge zu erwarten. Das ist nicht naiv, sondern heilsam!",
                 "points": 10
             },
-            "4": {
+            4: {
                 "title": "Pessimismus-Detektor",
                 "exercise": "Achte heute auf pessimistische Gedanken. Jedes Mal, wenn du einen bemerkst, notiere ihn und formuliere eine optimistische Alternative.",
                 "reflection": "Wie oft warst du pessimistisch? Was sind deine typischen pessimistischen Muster?",
                 "motivation": "Bewusstsein ist Macht. Du durchbrichst negative Denkmuster!",
                 "points": 10
             },
-            "5": {
+            5: {
                 "title": "Inspirierende Geschichten",
                 "exercise": "Lies, höre oder schau dir heute eine inspirierende Geschichte von jemandem an, der Schwierigkeiten überwunden hat.",
                 "reflection": "Was hat dich an dieser Geschichte berührt? Welche Lektion nimmst du mit?",
                 "motivation": "Geschichten der Hoffnung nähren deinen Optimismus. Du tankst Inspiration!",
                 "points": 10
             },
-            "6": {
+            6: {
                 "title": "Zukunfts-Vision",
                 "exercise": "Schreibe einen Brief aus der Zukunft (1 Jahr von jetzt). Beschreibe, wie gut es dir geht und was du alles erreicht hast.",
                 "reflection": "Wie fühlte es sich an, diese positive Zukunft zu visualisieren? Was brauchst du, um dahin zu kommen?",
                 "motivation": "Du erschaffst eine positive Vision. Dein Gehirn arbeitet jetzt darauf hin!",
                 "points": 10
             },
-            "7": {
+            7: {
                 "title": "Positives Selbstgespräch",
                 "exercise": "Heute nur positive Selbstgespräche. Ertappst du dich bei Selbstkritik, korrigiere es sofort zu etwas Aufbauendem.",
                 "reflection": "Wie oft musstest du korrigieren? Wie hat sich deine Stimmung im Laufe des Tages entwickelt?",
                 "motivation": "Deine innere Stimme formt deine Realität. Du wählst jetzt bewusst Optimismus!",
                 "points": 10
             },
-            "8": {
+            8: {
                 "title": "Lächeln als Werkzeug",
                 "exercise": "Lächle heute bewusst – auch ohne Grund. Schau, was es mit dir und deiner Umgebung macht.",
                 "reflection": "Wie hat das Lächeln deine Stimmung beeinflusst? Wie haben andere reagiert?",
                 "motivation": "Ein Lächeln verändert deine Chemie und die Welt um dich herum. Du verbreitest Positivität!",
                 "points": 10
             },
-            "9": {
+            9: {
                 "title": "Ressourcen-Check",
                 "exercise": "Liste alle inneren und äußeren Ressourcen auf, die du hast, um mit Schwierigkeiten umzugehen (Fähigkeiten, Menschen, Erfahrungen).",
                 "reflection": "Wie gut ausgestattet bist du wirklich? Verändert diese Liste dein Selbstvertrauen?",
                 "motivation": "Du bist nicht hilflos – du hast so viele Ressourcen! Das ist der Grund für realistischen Optimismus.",
                 "points": 10
             },
-            "10": {
+            10: {
                 "title": "Dein Optimismus-Anker",
                 "exercise": "Erstelle einen 'Optimismus-Anker': ein Objekt, Bild oder Zitat, das dich an deine optimistische Grundhaltung erinnert. Platziere es sichtbar.",
                 "reflection": "Was hast du gewählt? Warum? Wie wirst du es nutzen, wenn es schwierig wird?",
                 "motivation": "🎉 Du hast gelernt, Optimismus zu kultivieren! Du siehst jetzt Möglichkeiten, wo andere Hindernisse sehen.",
                 "points": 10
             }
-        }
-    },
+        } # Ende 'days'
+    }, # Ende "Optimismus"
     "Konfliktlösung": {
         "icon": "🕊️",
-        "description": "Entwickle Fähigkeiten für konstruktive Konfliktbewältigung",
-        "color": "#E91E63",
+        "description": "Entwickle Fähigkeiten für konstruktive Konfliktbewältigung.",
+        "color": "#E91E63", # Rosa
         "expert_tip": "Konflikte sind nicht das Problem – wie wir mit ihnen umgehen, entscheidet. Gute Konfliktlösung bedeutet, die Bedürfnisse aller Beteiligten zu hören und nach Lösungen zu suchen, bei denen niemand sein Gesicht verliert.",
         "days": {
-            "1": {
+            1: {
                 "title": "Konflikt-Muster erkennen",
                 "exercise": "Reflektiere über vergangene Konflikte. Wie reagierst du typischerweise? Vermeidung, Angriff, Rückzug, Kompromiss?",
                 "reflection": "Was ist dein Konflikt-Standard-Modus? Wie gut funktioniert er? Was möchtest du ändern?",
                 "motivation": "Selbsterkenntnis ist der erste Schritt zu besserer Konfliktlösung. Du schaust mutig hin!",
                 "points": 10
             },
-            "2": {
+            2: {
                 "title": "Ich-Botschaften üben",
                 "exercise": "Übe, Ich-Botschaften zu formulieren: 'Ich fühle X, wenn Y passiert, weil Z.' Schreibe 5 Beispiele aus deinem Leben.",
                 "reflection": "Wie unterscheiden sich Ich-Botschaften von 'Du'-Vorwürfen? Wie würde das Konflikte verändern?",
                 "motivation": "Du lernst, deine Bedürfnisse auszudrücken, ohne anzugreifen. Das ist Kommunikations-Gold!",
                 "points": 10
             },
-            "3": {
+            3: {
                 "title": "Perspektivwechsel",
                 "exercise": "Denke an einen aktuellen oder vergangenen Konflikt. Schreibe die Situation aus der Perspektive der anderen Person.",
                 "reflection": "Was siehst du jetzt, das du vorher nicht gesehen hast? Verändert das deine Emotion?",
                 "motivation": "Empathie ist der Schlüssel zur Konfliktlösung. Du öffnest dein Herz für andere Sichtweisen!",
                 "points": 10
             },
-            "4": {
+            4: {
                 "title": "Pausieren lernen",
                 "exercise": "Wenn du heute in eine Konfliktsituation gerätst (oder eine simulierst), übe zu pausieren, bevor du reagierst. Tief atmen, zählen, dann antworten.",
                 "reflection": "Wie schwer war es zu pausieren? Was veränderte sich durch die Pause?",
                 "motivation": "Zwischen Reiz und Reaktion liegt deine Macht. Du lernst, bewusst zu reagieren!",
                 "points": 10
             },
-            "5": {
+            5: {
                 "title": "Aktives Zuhören im Konflikt",
                 "exercise": "Übe die Technik des 'Spiegelns': 'Wenn ich dich richtig verstehe, sagst du...' Probiere es in einem Gespräch.",
                 "reflection": "Wie hat die andere Person reagiert, als du wirklich zugehört hast? Was hat es mit dem Konflikt gemacht?",
                 "motivation": "Verstanden zu werden ist ein Grundbedürfnis. Du schenkst das heute jemandem!",
                 "points": 10
             },
-            "6": {
+            6: {
                 "title": "Bedürfnisse identifizieren",
                 "exercise": "Bei einem Konflikt: Grabe tiefer als die Positionen. Was ist das zugrunde liegende Bedürfnis – bei dir und beim anderen?",
                 "reflection": "Welches Bedürfnis steht hinter dem Konflikt? Wie könnte man beide Bedürfnisse erfüllen?",
                 "motivation": "Hinter jedem Konflikt stehen Bedürfnisse. Du lernst, die Wurzel zu finden!",
                 "points": 10
             },
-            "7": {
+            7: {
                 "title": "Win-Win denken",
                 "exercise": "Nimm einen Konflikt und brainstorme 5 mögliche Win-Win-Lösungen. Kreativität ist erlaubt!",
                 "reflection": "Wie viele Lösungen hast du gefunden? Welche ist die beste für alle Beteiligten?",
                 "motivation": "Es gibt fast immer eine Lösung, bei der alle gewinnen. Du denkst in Möglichkeiten!",
                 "points": 10
             },
-            "8": {
+            8: {
                 "title": "Entschuldigung üben",
                 "exercise": "Eine echte Entschuldigung hat 3 Teile: 'Es tut mir leid für X. Ich verstehe, dass es Y verursacht hat. Ich werde Z tun.' Schreibe eine.",
                 "reflection": "Wie fühlt es sich an, Verantwortung zu übernehmen? Für was in deinem Leben möchtest du dich entschuldigen?",
                 "motivation": "Sich zu entschuldigen ist Stärke, nicht Schwäche. Du baust Brücken!",
                 "points": 10
             },
-            "9": {
+            9: {
                 "title": "Grenzen im Konflikt",
                 "exercise": "Identifiziere, wann ein Konflikt nicht konstruktiv ist (Respektlosigkeit, Gewalt). Übe zu sagen: 'Ich möchte das klären, aber nicht so. Lass uns pausieren.'",
                 "reflection": "Wo sind deine Grenzen in Konflikten? Wie kannst du sie schützen?",
                 "motivation": "Nicht jeder Konflikt kann sofort gelöst werden. Du lernst, dich zu schützen!",
                 "points": 10
             },
-            "10": {
+            10: {
                 "title": "Dein Konfliktlösungs-Toolkit",
                 "exercise": "Erstelle ein persönliches Toolkit: Welche 5 Strategien helfen dir in Konflikten? Schreibe sie als Notfallplan auf.",
                 "reflection": "Was sind deine effektivsten Konfliktlösungs-Tools? Wie wirst du sie nutzen?",
                 "motivation": "🎉 Du bist jetzt ein Friedensstifter! Du hast gelernt, Konflikte als Chance für Wachstum zu sehen.",
                 "points": 10
             }
-        }
-    }
+        } # Ende 'days'
+    } # Ende "Konfliktlösung"
+} # Ende CHALLENGE_DATA
+
 
 # --- 3. ZUSTAND DER APP VERWALTEN (SESSION STATE) ---
 
