@@ -905,7 +905,8 @@ CHALLENGE_DATA = {
                 "motivation": "🎉 Du hast ein stärkeres Selbstbild entwickelt! Du siehst dich jetzt mit freundlicheren Augen.",
                 "points": 10
             }
-        }
+          }
+       }
     },
     "Verbundenheit": {
         "icon": "🤝",
