@@ -841,7 +841,7 @@ CHALLENGE_DATA = {
             },
             # Weitere Tage folgen hier ...
         }
-    },
+      },
             2: {
                 "title": "Innerer Kritiker vs. innerer Unterstützer",
                 "exercise": "Identifiziere eine Situation, in der dein innerer Kritiker laut war. Was hat er gesagt? Schreibe eine Antwort von deinem inneren Unterstützer.",
@@ -906,7 +906,7 @@ CHALLENGE_DATA = {
                 "points": 10
             }
         }, # HIER ENDET DAS 'days'-Dictionary (Wichtig: Das Komma nach der Klammer)
-    }, # HIER ENDET DAS "Selbstbild stärken"-Dictionary (Wichtig: Das Komma nach der Klammer)
+      }, # HIER ENDET DAS "Selbstbild stärken"-Dictionary (Wichtig: Das Komma nach der Klammer)
     "Verbundenheit": { # HIER BEGINNT DIE NEUE KATEGORIE
         "icon": "🤝",
         "description": "Baue tiefere und bedeutungsvollere Beziehungen auf, indem du lernst, aktiv zuzuhören, Grenzen zu setzen und Verletzlichkeit zu zeigen.",
