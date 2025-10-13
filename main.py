@@ -825,11 +825,11 @@ def main():
     # Rendern der Navigationsleiste
     render_bottom_nav()
 
-const CHALLENGE_DATA = {
+CHALLENGE_DATA = {
     "Selbstbild stärken": {
         "icon": "🌟",
         "description": "Entwickle ein positives und realistisches Selbstbild durch gezielte Übungen zur Selbstreflexion und Überwindung des inneren Kritikers.",
-        "color": "#9C27B0", // Lila
+        "color": "#9C27B0",  # Lila
         "expert_tip": "Negative Gedanken wie 'Das kann ich nicht' sind nur Gewohnheiten. Fragen Sie sich: 'Was ist das Gegenteil dieses Gedankens?' Ersetzen Sie ihn durch eine neutrale oder positive Alternative, wie 'Ich lerne und werde besser.'",
         "days": {
             1: {
@@ -839,6 +839,9 @@ const CHALLENGE_DATA = {
                 "motivation": "Bewusstsein ist der erste Schritt zur Veränderung. Du schaust mutig hin!",
                 "points": 10
             },
+            # Weitere Tage folgen hier ...
+        }
+    },
             2: {
                 "title": "Innerer Kritiker vs. innerer Unterstützer",
                 "exercise": "Identifiziere eine Situation, in der dein innerer Kritiker laut war. Was hat er gesagt? Schreibe eine Antwort von deinem inneren Unterstützer.",
