@@ -1142,7 +1142,6 @@ const CHALLENGE_DATA = {
             }
         }
     }
-}
 
 # --- 3. ZUSTAND DER APP VERWALTEN (SESSION STATE) ---
 
