@@ -904,13 +904,13 @@ CHALLENGE_DATA = {
                 "reflection": "Wie unterscheidet sich dieses Selbstbild von dem zu Beginn? Was hat sich verändert?",
                 "motivation": "🎉 Du hast ein stärkeres Selbstbild entwickelt! Du siehst dich jetzt mit freundlicheren Augen.",
                 "points": 10
-           }
-        }
-    },
-    "Verbundenheit": {
+            }
+        }, # HIER ENDET DAS 'days'-Dictionary (Wichtig: Das Komma nach der Klammer)
+    }, # HIER ENDET DAS "Selbstbild stärken"-Dictionary (Wichtig: Das Komma nach der Klammer)
+    "Verbundenheit": { # HIER BEGINNT DIE NEUE KATEGORIE
         "icon": "🤝",
         "description": "Baue tiefere und bedeutungsvollere Beziehungen auf, indem du lernst, aktiv zuzuhören, Grenzen zu setzen und Verletzlichkeit zu zeigen.",
-        "color": "#2196F3", // Blau
+        "color": "#2196F3",  # Blau
         "expert_tip": "Wahre Nähe entsteht oft erst, wenn wir uns verletzlich zeigen. Das Teilen einer ehrlichen Sorge oder eines kleinen Moments der Unsicherheit ist keine Schwäche, sondern ein Akt des Vertrauens, der Ihre Beziehungen vertiefen kann.",
         "days": {
             1: {
