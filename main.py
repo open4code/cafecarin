@@ -824,10 +824,10 @@ def main():
 
     # Rendern der Navigationsleiste
     render_bottom_nav()
-/**
- * Konfigurationsdaten für die 10-Tage-Challenge zur persönlichen Entwicklung.
- * Die Struktur ermöglicht eine einfache Iteration durch die Kategorien und Tage.
- */
+#
+ # Konfigurationsdaten für die 10-Tage-Challenge zur persönlichen Entwicklung.
+ # Die Struktur ermöglicht eine einfache Iteration durch die Kategorien und Tage.
+ #
 const CHALLENGE_DATA = {
     "Selbstbild stärken": {
         "icon": "🌟",
