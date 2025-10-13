@@ -14,8 +14,8 @@ import base64
 # --- 1. SEITENKONFIGURATION & STYLING ---
 st.set_page_config(
     page_title="VitaBoost",
-    layout=\"wide\",
-    initial_sidebar_state=\"collapsed\"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
 # Das CSS wurde komplett neu geschrieben, um das Layout aus dem Bild zu replizieren
