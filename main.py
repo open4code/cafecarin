@@ -905,7 +905,7 @@ CHALLENGE_DATA = {
                 "motivation": "🎉 Du hast ein stärkeres Selbstbild entwickelt! Du siehst dich jetzt mit freundlicheren Augen.",
                 "points": 10
             }
-        }, # HIER ENDET DAS 'days'-Dictionary (Wichtig: Das Komma nach der Klammer)
+        } # HIER ENDET DAS 'days'-Dictionary (Wichtig: Das Komma nach der Klammer)
       }, # HIER ENDET DAS "Selbstbild stärken"-Dictionary (Wichtig: Das Komma nach der Klammer)
     "Verbundenheit": { # HIER BEGINNT DIE NEUE KATEGORIE
         "icon": "🤝",
