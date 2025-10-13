@@ -904,9 +904,8 @@ CHALLENGE_DATA = {
                 "reflection": "Wie unterscheidet sich dieses Selbstbild von dem zu Beginn? Was hat sich verändert?",
                 "motivation": "🎉 Du hast ein stärkeres Selbstbild entwickelt! Du siehst dich jetzt mit freundlicheren Augen.",
                 "points": 10
-            }
-          }
-       }
+           }
+        }
     },
     "Verbundenheit": {
         "icon": "🤝",
