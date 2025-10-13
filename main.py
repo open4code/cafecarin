@@ -13,7 +13,7 @@ import base64
 
 # --- 1. SEITENKONFIGURATION & STYLING ---
 st.set_page_config(
-    page_title=\"VitaBoost\",
+    page_title="VitaBoost",
     layout=\"wide\",
     initial_sidebar_state=\"collapsed\"
 )
