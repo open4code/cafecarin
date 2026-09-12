@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-VitaBoost – Mentale Gesundheits-App
+Wellity – Mentale Gesundheits-App
 Kompletter Neuaufbau mit:
   1. Entscheidungsreise (6 Schritte)
   2. Resilienz-Check (11 Faktoren, Radar-Diagramm, personalisierte Auswertung)
@@ -21,7 +21,7 @@ import random
 # ──────────────────────────────────────────────────────────────────────────────
 
 st.set_page_config(
-    page_title="VitaBoost",
+    page_title="Wellity",
     page_icon="🌱",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -858,7 +858,7 @@ def render_bottom_nav():
 def page_home():
     st.markdown("""
     <div class="vb-hero">
-        <h1>VitaBoost 🌱</h1>
+        <h1>Wellity 🌱</h1>
         <p>Dein persönlicher Begleiter für mentale Stärke & gesunde Entscheidungen.</p>
     </div>
     """, unsafe_allow_html=True)
