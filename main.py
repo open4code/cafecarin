@@ -13,6 +13,7 @@ import pandas as pd
 import json
 import time
 import math
+import copy
 from datetime import date, datetime, timedelta
 import random
 
@@ -367,11 +368,26 @@ DEFAULTS = dict(
     tr_total_done=0,
     tr_badges_earned=[],
     tr_challenge_log=[],    # list of {date, challenge_id, factor}
+
+    # ── Lebensübergänge ──
+    lu_type=None,           # aktuell gewählter Übergangstyp (Key aus TRANSITIONS)
+    lu_step=0,               # aktueller Reflexionsschritt innerhalb des Typs
+    lu_answers={},           # typ -> {schritt_label: antworttext}
+
+    # ── Werte-Kompass ──
+    wk_wheel={},             # lebensbereich -> zufriedenheit (0-10)
+    wk_values=[],            # ausgewählte Top-Werte (max. 5)
+    wk_values_reflection="",
+    wk_journal=[],           # list of {date, prompt, text}
 )
 
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
-        st.session_state[k] = v
+        # deepcopy: verhindert, dass alle Sessions dieselben list/dict-Objekte
+        # aus DEFAULTS teilen (sonst könnten sich Nutzer:innen z. B. Journal-
+        # Einträge gegenseitig überschreiben, da DEFAULTS nur einmal beim
+        # Modulimport erstellt wird).
+        st.session_state[k] = copy.deepcopy(v)
 
 
 def go(page):
@@ -381,14 +397,20 @@ def go(page):
 def reset_dj():
     for k in list(DEFAULTS.keys()):
         if k.startswith("dj_"):
-            st.session_state[k] = DEFAULTS[k]
+            st.session_state[k] = copy.deepcopy(DEFAULTS[k])
     go("home")
 
 def reset_rc():
     for k in list(DEFAULTS.keys()):
         if k.startswith("rc_"):
-            st.session_state[k] = DEFAULTS[k]
+            st.session_state[k] = copy.deepcopy(DEFAULTS[k])
     go("home")
+
+def reset_lu():
+    for k in list(DEFAULTS.keys()):
+        if k.startswith("lu_"):
+            st.session_state[k] = copy.deepcopy(DEFAULTS[k])
+    go("lu_intro")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -704,6 +726,109 @@ BADGES = [
     {"id": "social_star",  "name": "Sozial-Star",       "icon": "🤝", "desc": "5 soziale Challenges erledigt",    "condition": lambda s: s["factor_counts"].get("social", 0) >= 5},
 ]
 
+# Lebensübergänge – geführte Reflexionspfade je Situationstyp.
+# Letzter Schritt hat prompt=None und wird als Zusammenfassung gerendert
+# (gleiches Prinzip wie die Entscheidungsreise-Schritte 1-6).
+TRANSITIONS = {
+    "Jobverlust": {
+        "icon": "💼",
+        "steps": [
+            ("Situation", "Was genau ist passiert, und wie hast du davon erfahren?"),
+            ("Gefühle", "Welche Gefühle kommen hoch, wenn du daran denkst? Alle sind erlaubt."),
+            ("Gedanken", "Welche Gedanken oder Befürchtungen gehen dir durch den Kopf?"),
+            ("Ressourcen", "Wer oder was hat dir schon einmal durch eine schwierige Phase geholfen?"),
+            ("Nächste Schritte", "Was ist ein kleiner, machbarer nächster Schritt – diese Woche?"),
+            ("Zusammenfassung", None),
+        ],
+    },
+    "Trennung": {
+        "icon": "💔",
+        "steps": [
+            ("Situation", "Wie hat sich die Trennung entwickelt, und wo stehst du gerade?"),
+            ("Gefühle", "Was fühlst du gerade – Trauer, Wut, Erleichterung, ein Mix?"),
+            ("Gedanken", "Welche Geschichte erzählst du dir gerade über dich und die Beziehung?"),
+            ("Ressourcen", "Wer aus deinem Umfeld tut dir gerade gut?"),
+            ("Nächste Schritte", "Was würde dir diese Woche etwas Halt geben?"),
+            ("Zusammenfassung", None),
+        ],
+    },
+    "Umzug": {
+        "icon": "📦",
+        "steps": [
+            ("Situation", "Was verändert sich durch den Umzug konkret in deinem Alltag?"),
+            ("Gefühle", "Was löst der Umzug in dir aus – Vorfreude, Angst, Wehmut?"),
+            ("Gedanken", "Was befürchtest du zu verlieren, und was erhoffst du dir?"),
+            ("Ressourcen", "Was hat dir bei früheren Veränderungen geholfen, anzukommen?"),
+            ("Nächste Schritte", "Welcher erste Schritt macht den neuen Ort ein bisschen vertrauter?"),
+            ("Zusammenfassung", None),
+        ],
+    },
+    "Trauer": {
+        "icon": "🕯️",
+        "steps": [
+            ("Situation", "Wen oder was hast du verloren? Du musst hier nicht ins Detail gehen, wenn du nicht willst."),
+            ("Gefühle", "Welche Gefühle sind gerade da? Es gibt kein 'richtig' oder 'falsch'."),
+            ("Gedanken", "Gibt es unausgesprochene Dinge, die dich beschäftigen?"),
+            ("Ressourcen", "Was oder wer hält dich gerade?"),
+            ("Nächste Schritte", "Was würde dir heute guttun – und sei es nur eine Kleinigkeit?"),
+            ("Zusammenfassung", None),
+        ],
+    },
+    "Ausbildungsende": {
+        "icon": "🎓",
+        "steps": [
+            ("Situation", "Was liegt hinter dir, und was liegt jetzt vor dir?"),
+            ("Gefühle", "Stolz, Unsicherheit, Erleichterung – was überwiegt gerade?"),
+            ("Gedanken", "Welche Erwartungen (eigene oder fremde) spürst du gerade am stärksten?"),
+            ("Ressourcen", "Welche Fähigkeiten hast du dir in dieser Zeit erarbeitet?"),
+            ("Nächste Schritte", "Was ist ein realistischer erster Schritt in den nächsten Lebensabschnitt?"),
+            ("Zusammenfassung", None),
+        ],
+    },
+}
+
+# Werte-Kompass – Lebensrad, Werte-Klärung, Identitäts-Journaling
+LIFE_DOMAINS = [
+    "Beruf/Karriere", "Beziehungen", "Gesundheit", "Finanzen",
+    "Pers. Wachstum", "Freizeit/Erholung", "Familie", "Sinn/Spiritualität",
+]
+
+VALUES_POOL = [
+    "Freiheit", "Sicherheit", "Kreativität", "Familie", "Gesundheit",
+    "Anerkennung", "Gerechtigkeit", "Abenteuer", "Verbindung", "Wachstum",
+    "Verlässlichkeit", "Autonomie", "Erfolg", "Ruhe", "Neugier",
+    "Ehrlichkeit", "Mitgefühl", "Ordnung", "Spiritualität", "Einfluss",
+]
+
+JOURNAL_PROMPTS = [
+    "Was beschäftigt mich gerade am meisten?",
+    "Welcher Teil von mir zeigt sich in letzter Zeit stärker als früher?",
+    "Wovon möchte ich mich gerade lösen?",
+    "Was würde ich tun, wenn ich wüsste, es geht nicht schief?",
+    "Wer war ich vor 5 Jahren – wer bin ich heute?",
+    "Was gibt mir gerade Halt?",
+    "Wofür bin ich diese Woche dankbar?",
+    "Welche Entscheidung schiebe ich gerade vor mir her?",
+]
+
+# Krisenkompass – immer über die Bottom-Nav ("🆘") erreichbar
+HOTLINES = [
+    {"name": "Telefonseelsorge (kostenlos, anonym, 24/7)", "phone": "0800 111 0 111"},
+    {"name": "Telefonseelsorge (Alternativnummer)", "phone": "0800 111 0 222"},
+    {"name": "Nummer gegen Kummer – Kinder- & Jugendtelefon", "phone": "116 111"},
+    {"name": "Krisenchat.de", "url": "https://krisenchat.de"},
+    {"name": "Ärztlicher Bereitschaftsdienst", "phone": "116 117"},
+    {"name": "Bei akuter Lebensgefahr: Notruf", "phone": "112"},
+]
+
+FIVE_SENSES = [
+    ("👀 Sehen", "Nenne 5 Dinge, die du gerade siehst."),
+    ("✋ Fühlen", "Nenne 4 Dinge, die du gerade körperlich spürst."),
+    ("👂 Hören", "Nenne 3 Geräusche, die du gerade hörst."),
+    ("👃 Riechen", "Nenne 2 Dinge, die du riechen kannst."),
+    ("👅 Schmecken", "Nenne 1 Sache, die du schmecken kannst."),
+]
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 4.  HELPER FUNCTIONS
@@ -824,11 +949,28 @@ def render_factor_bar(factor, score, bar_cls):
     """, unsafe_allow_html=True)
 
 
+def render_life_wheel_bar(domain, score):
+    """Wie render_factor_bar, aber für die 0-10-Skala des Lebensrads (Werte-Kompass)."""
+    pct = (score / 10) * 100
+    st.markdown(f"""
+    <div class="factor-bar-wrap">
+        <div class="factor-bar-header">
+            <span class="factor-bar-label">{domain}</span>
+            <span class="factor-bar-score">{score}/10</span>
+        </div>
+        <div class="factor-bar-bg">
+            <div class="factor-bar-fill neutral" style="width:{pct:.0f}%"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def render_bottom_nav():
     pages = [("🏠", "Home",     "home"),
              ("🧠", "Decide",   "dj_step1"),
              ("💚", "Resilienz","rc_intro"),
              ("🏆", "Training", "training"),
+             ("🆘", "SOS",      "sos"),
              ("⭐", "Pro",      "pricing")]
     active = st.session_state.page
     nav_html = '<div class="bottom-nav">'
@@ -883,6 +1025,18 @@ def page_home():
             <p>Tägliche Challenges · Streak-System · Badges · Personalisiert nach deinem Check.</p>
             <span class="feature-badge">Neu</span>
         </div>
+        <div class="feature-card">
+            <div class="feature-icon">🌉</div>
+            <h3>Lebensübergänge</h3>
+            <p>Geführte Reflexion für Jobverlust, Trennung, Umzug, Trauer und Ausbildungsende.</p>
+            <span class="feature-badge">Neu</span>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🧭</div>
+            <h3>Werte-Kompass</h3>
+            <p>Lebensrad, Werte-Klärung und wiederkehrendes Identitäts-Journaling.</p>
+            <span class="feature-badge">Neu</span>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -896,6 +1050,22 @@ def page_home():
     with col3:
         if st.button("Training & Challenges →"):
             go("training")
+
+    col4, col5 = st.columns(2)
+    with col4:
+        if st.button("Lebensübergänge starten →"):
+            go("lu_intro")
+    with col5:
+        if st.button("Werte-Kompass öffnen →"):
+            go("wk_home")
+
+    st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="vb-card-warm">
+        <p style="margin:0">🆘 Falls es dir gerade nicht gut geht: Im Krisenkompass (unten in der Navigation)
+        findest du Grounding-Übungen und Hotlines.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Streak teaser if active
     if st.session_state.tr_streak > 0:
@@ -1170,7 +1340,7 @@ def page_dj_step6():
     st.markdown('<div class="vb-card-sage">', unsafe_allow_html=True)
     st.markdown("### 🔵 Dein erster Schritt – Der Blaue Hut & SMART-Ziele")
     st.markdown("""
-**S** – Spezifisch: Was genau?  **M** – Messbar: Woran erkennst du Erfolg?  
+**S** – Spezifisch: Was genau?  **M** – Messbar: Woran erkennst du Erfolg?
 **A** – Attraktiv: Warum ist es dir wichtig?  **R** – Realistisch: Ist es erreichbar?  **T** – Terminiert: Bis wann?
     """)
     st.session_state.dj_first_step = st.text_input(
@@ -1451,7 +1621,7 @@ def page_training():
         <div class="vb-card" style="border:2px dashed #C8963E;background:var(--gold-lt) !important;">
             <span class="pro-lock">🔒 PRO</span>
             <h3 style="margin:0.5rem 0 0.3rem">Mehr mit VitaBoost Pro</h3>
-            <p style="margin:0">Detaillierter Fortschrittsbericht · Wöchentliche Coach-Sessions · 
+            <p style="margin:0">Detaillierter Fortschrittsbericht · Wöchentliche Coach-Sessions ·
             Team-Dashboard für HR · Exportierbare PDF-Berichte</p>
         </div>
         """, unsafe_allow_html=True)
@@ -1530,11 +1700,218 @@ def page_pricing():
     <div class="vb-card-warm">
         <h3 style="margin:0 0 0.5rem">💼 Warum VitaBoost für Unternehmen?</h3>
         <p>Burnout kostet Unternehmen durchschnittlich <strong>9.000 € pro betroffener Person</strong> (Fehlzeiten, Produktivität, Fluktuation).
-        VitaBoost hilft Mitarbeiter·innen, ihre Resilienz proaktiv zu stärken – 
+        VitaBoost hilft Mitarbeiter·innen, ihre Resilienz proaktiv zu stärken –
         messbar, datenschutzkonform und skalierbar.</p>
         <p style="margin:0"><strong>ROI-Beispiel:</strong> Bei 50 Mitarbeiter·innen und 15 % Burnout-Reduktion → <em>~67.500 € Ersparnis/Jahr</em>.</p>
     </div>
     """, unsafe_allow_html=True)
+
+
+# ── LEBENSÜBERGÄNGE ───────────────────────────────────────────────────────────
+
+def page_lu_intro():
+    st.markdown("## 🌉 Lebensübergänge")
+    st.markdown("""
+    <div class="vb-card">
+        <h3 style="margin:0 0 0.5rem">Geführte Reflexion für Phasen, die dein Leben gerade auf den Kopf stellen</h3>
+        <p style="margin:0">Wähle die Situation, die dich aktuell am meisten beschäftigt. Du durchläufst
+        dieselben 6 Reflexionsschritte wie in der Entscheidungsreise – zugeschnitten auf deine Situation.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    st.info("⚠️ Disclaimer: Diese Reflexion ersetzt keine Therapie oder ärztliche Behandlung. Falls es dir gerade sehr schlecht geht, findest du unter 🆘 SOS Soforthilfe.")
+
+    keys = list(TRANSITIONS.keys())
+    cols = st.columns(3)
+    for i, key in enumerate(keys):
+        with cols[i % 3]:
+            if st.button(f"{TRANSITIONS[key]['icon']} {key}", key=f"lu_pick_{key}"):
+                st.session_state.lu_type = key
+                st.session_state.lu_step = 0
+                go("lu_flow")
+
+    if st.session_state.lu_type and st.session_state.lu_answers.get(st.session_state.lu_type):
+        st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
+        if st.button(f"Weiter mit „{st.session_state.lu_type}" + "“ →"):
+            go("lu_flow")
+
+
+def page_lu_flow():
+    ttype = st.session_state.lu_type
+    if not ttype or ttype not in TRANSITIONS:
+        go("lu_intro")
+        return
+
+    steps = TRANSITIONS[ttype]["steps"]
+    step_idx = st.session_state.lu_step
+    total = len(steps)
+
+    st.markdown(f"## {TRANSITIONS[ttype]['icon']} {ttype}")
+    render_stepper(step_idx + 1, total)
+
+    if st.button("← Andere Situation wählen", key="lu_back_to_intro"):
+        go("lu_intro")
+
+    label, prompt = steps[step_idx]
+    answers = st.session_state.lu_answers.setdefault(ttype, {})
+
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    if prompt is not None:
+        st.markdown(f"### {label}")
+        answers[label] = st.text_area(
+            prompt, value=answers.get(label, ""), height=140, key=f"lu_{ttype}_{label}")
+    else:
+        st.markdown("### 📋 Deine Reflexion im Überblick")
+        for lbl, _ in steps[:-1]:
+            st.markdown(f"**{lbl}**")
+            st.write(answers.get(lbl) or "–")
+        st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
+        st.markdown(
+            "Du kannst diese Reflexion jederzeit erneut durchlaufen – Übergänge "
+            "verändern sich oft, während man sie durchlebt."
+        )
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    c1, c2 = st.columns([1, 3])
+    with c1:
+        if step_idx > 0:
+            if st.button("← Zurück", key="lu_prev"):
+                st.session_state.lu_step -= 1
+                st.rerun()
+    with c2:
+        if step_idx < total - 1:
+            if st.button("Weiter →", key="lu_next"):
+                st.session_state.lu_step += 1
+                st.rerun()
+        else:
+            if st.button("Neue Reflexion starten", key="lu_restart"):
+                reset_lu()
+
+
+# ── WERTE-KOMPASS ─────────────────────────────────────────────────────────────
+
+def page_werte_kompass():
+    st.markdown("## 🧭 Werte-Kompass")
+    st.markdown("""
+    <div class="vb-card">
+        <p style="margin:0">Wer bin ich gerade? Lebensrad, Werte-Klärung und wiederkehrendes Journaling
+        – statt eines Einmal-Tests.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── Lebensrad ──
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    st.markdown("### 🎡 Lebensrad")
+    st.markdown("Wie zufrieden bist du gerade in jedem Bereich? (0 = gar nicht, 10 = sehr)")
+    cols = st.columns(2)
+    for i, domain in enumerate(LIFE_DOMAINS):
+        with cols[i % 2]:
+            score = st.slider(domain, 0, 10, st.session_state.wk_wheel.get(domain, 5), key=f"wk_wheel_{domain}")
+            st.session_state.wk_wheel[domain] = score
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    for domain in LIFE_DOMAINS:
+        render_life_wheel_bar(domain, st.session_state.wk_wheel.get(domain, 5))
+    lowest = min(LIFE_DOMAINS, key=lambda d: st.session_state.wk_wheel.get(d, 5))
+    st.markdown(
+        f"<p style='margin-top:0.5rem'>Größtes Entwicklungspotenzial siehst du aktuell bei "
+        f"<strong>{lowest}</strong> ({st.session_state.wk_wheel.get(lowest, 5)}/10).</p>",
+        unsafe_allow_html=True,
+    )
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ── Werte-Klärung ──
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    st.markdown("### 🎯 Meine Top-5-Werte")
+    selected = st.multiselect(
+        "Wähle bis zu 5 Werte, die dich aktuell am meisten leiten:",
+        options=VALUES_POOL, max_selections=5, key="wk_values_widget")
+    st.session_state.wk_values = selected
+    if selected:
+        st.markdown(" · ".join(f"**{v}**" for v in selected))
+        st.session_state.wk_values_reflection = st.text_area(
+            "Wo in deinem Alltag lebst du diese Werte bereits? Wo (noch) nicht?",
+            value=st.session_state.wk_values_reflection, height=110, key="wk_reflection_widget")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ── Identitäts-Journaling ──
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    st.markdown("### 📓 Identitäts-Journaling")
+    prompt_idx = date.today().toordinal() % len(JOURNAL_PROMPTS)
+    todays_prompt = JOURNAL_PROMPTS[prompt_idx]
+    st.markdown(f"**Heutiger Impuls:** {todays_prompt}")
+    entry_text = st.text_area("Deine Antwort", key="wk_journal_input", height=140)
+
+    if st.button("Eintrag speichern", key="wk_journal_save"):
+        if entry_text.strip():
+            st.session_state.wk_journal.append(
+                {"date": date.today().isoformat(), "prompt": todays_prompt, "text": entry_text})
+            del st.session_state["wk_journal_input"]
+            st.success("Gespeichert (für diese Sitzung).")
+            st.rerun()
+        else:
+            st.warning("Leerer Eintrag wurde nicht gespeichert.")
+
+    if st.session_state.wk_journal:
+        st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
+        for entry in reversed(st.session_state.wk_journal):
+            with st.expander(f"{entry['date']} – {entry['prompt']}"):
+                st.write(entry["text"])
+        export_text = "\n\n".join(
+            f"{e['date']} - {e['prompt']}\n{e['text']}" for e in st.session_state.wk_journal)
+        st.download_button(
+            "Journal als Textdatei exportieren", data=export_text,
+            file_name="identitaets_journal.txt", mime="text/plain")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if st.button("Zur Startseite", key="wk_home_btn"):
+        go("home")
+
+
+# ── KRISENKOMPASS (SOS) ───────────────────────────────────────────────────────
+
+def page_sos():
+    st.markdown("## 🆘 Krisenkompass")
+    st.markdown("""
+    <div class="vb-card-warm">
+        <p style="margin:0">Diese App ersetzt keine Therapie oder ärztliche Behandlung. Wenn es dir gerade
+        nicht gut geht, sind das erste Schritte – kein Behandlungsangebot, sondern ein Sicherheitsnetz.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    st.markdown("### 🌬️ Atemübung – 4-7-8")
+    st.markdown("4 Sek. einatmen · 7 Sek. halten · 8 Sek. ausatmen.")
+    if st.button("Übung starten", key="sos_breathing"):
+        placeholder = st.empty()
+        for phase, seconds in [("Einatmen …", 4), ("Halten …", 7), ("Ausatmen …", 8)]:
+            for remaining in range(seconds, 0, -1):
+                placeholder.markdown(f"#### {phase} {remaining}")
+                time.sleep(1)
+        placeholder.markdown("#### Fertig. Wiederhole gern noch 2–3 Runden.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    st.markdown("### 🖐️ 5-4-3-2-1 Grounding")
+    st.markdown("Geh die Sinne der Reihe nach durch – das holt dich ins Hier und Jetzt.")
+    for label, prompt in FIVE_SENSES:
+        st.text_input(f"{label}: {prompt}", key=f"sos_{label}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    st.markdown("### 📞 Hilfe holen")
+    for entry in HOTLINES:
+        parts = [f"**{entry['name']}**"]
+        if "phone" in entry:
+            tel = entry["phone"].replace(" ", "")
+            parts.append(f"📞 [{entry['phone']}](tel:{tel})")
+        if "url" in entry:
+            parts.append(f"🔗 [{entry['url']}]({entry['url']})")
+        st.markdown(" · ".join(parts))
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if st.button("Zurück", key="sos_back"):
+        go("home")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1554,6 +1931,10 @@ PAGE_MAP = {
     "rc_results": page_rc_results,
     "training":   page_training,
     "pricing":    page_pricing,
+    "lu_intro":   page_lu_intro,
+    "lu_flow":    page_lu_flow,
+    "wk_home":    page_werte_kompass,
+    "sos":        page_sos,
 }
 
 current = st.session_state.page
@@ -1564,4 +1945,3 @@ else:
 
 # Bottom nav always visible (except home)
 render_bottom_nav()
- 
