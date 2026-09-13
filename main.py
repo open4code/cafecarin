@@ -1051,7 +1051,7 @@ def page_home():
         if st.button("Training & Challenges →"):
             go("training")
 
-    col4, col5 = st.columns(2)
+    col4, col5, col6 = st.columns(3)
     with col4:
         if st.button("Lebensübergänge starten →"):
             go("lu_intro")
