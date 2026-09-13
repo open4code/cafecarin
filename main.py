@@ -1005,7 +1005,7 @@ def page_home():
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
+       st.markdown("""
     <div class="feature-grid">
         <div class="feature-card">
             <div class="feature-icon">🧠</div>
@@ -1025,6 +1025,22 @@ def page_home():
             <p>Tägliche Challenges · Streak-System · Badges · Personalisiert nach deinem Check.</p>
             <span class="feature-badge">Neu</span>
         </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("Entscheidungsreise starten →"):
+            go("dj_step1")
+    with col2:
+        if st.button("Resilienz-Check starten →"):
+            go("rc_intro")
+    with col3:
+        if st.button("Training & Challenges →"):
+            go("training")
+
+    st.markdown("""
+    <div class="feature-grid">
         <div class="feature-card">
             <div class="feature-icon">🌉</div>
             <h3>Lebensübergänge</h3>
@@ -1040,17 +1056,6 @@ def page_home():
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("Entscheidungsreise starten →"):
-            go("dj_step1")
-    with col2:
-        if st.button("Resilienz-Check starten →"):
-            go("rc_intro")
-    with col3:
-        if st.button("Training & Challenges →"):
-            go("training")
-
     col4, col5, col6 = st.columns(3)
     with col4:
         if st.button("Lebensübergänge starten →"):
@@ -1058,7 +1063,7 @@ def page_home():
     with col5:
         if st.button("Werte-Kompass öffnen →"):
             go("wk_home")
-
+    # col6 bleibt leer – hält die Ausrichtung zur 3-spaltigen feature-grid oben
     st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
     st.markdown("""
     <div class="vb-card-warm">
