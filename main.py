@@ -1005,7 +1005,7 @@ def page_home():
     </div>
     """, unsafe_allow_html=True)
 
-       st.markdown("""
+       st.markdown(""
     <div class="feature-grid">
         <div class="feature-card">
             <div class="feature-icon">🧠</div>
