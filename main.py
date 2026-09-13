@@ -379,6 +379,15 @@ DEFAULTS = dict(
     wk_values=[],            # ausgewählte Top-Werte (max. 5)
     wk_values_reflection="",
     wk_journal=[],           # list of {date, prompt, text}
+
+    # ── Krisenkompass: persönliches Notfall-Merkblatt ──
+    kp_warnzeichen="",
+    kp_hilft="",
+    kp_kontakte="",
+
+    # ── Innerer Kritiker (Reframing) ──
+    rf_step=0,               # aktueller Schritt in REFRAME_STEPS
+    rf_answers={},           # schritt_label -> antworttext
 )
 
 for k, v in DEFAULTS.items():
@@ -411,6 +420,12 @@ def reset_lu():
         if k.startswith("lu_"):
             st.session_state[k] = copy.deepcopy(DEFAULTS[k])
     go("lu_intro")
+
+def reset_rf():
+    for k in list(DEFAULTS.keys()):
+        if k.startswith("rf_"):
+            st.session_state[k] = copy.deepcopy(DEFAULTS[k])
+    go("home")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -821,6 +836,18 @@ HOTLINES = [
     {"name": "Bei akuter Lebensgefahr: Notruf", "phone": "112"},
 ]
 
+# Innerer Kritiker – CBT-inspiriertes Reframing, ein fester Ablauf (kein Typ wie
+# bei TRANSITIONS). Gleiches Prinzip: letzter Schritt hat prompt=None und wird
+# als Zusammenfassung gerendert.
+REFRAME_STEPS = [
+    ("Der Gedanke", "Was hat dein innerer Kritiker gerade zu dir gesagt? Schreib ihn möglichst wörtlich auf."),
+    ("Beweise dafür", "Welche konkreten Beweise sprechen dafür, dass dieser Gedanke stimmt?"),
+    ("Beweise dagegen", "Welche Beweise sprechen dagegen? Was würdest du einer guten Freundin sagen, die das über sich denkt?"),
+    ("Andere Erklärung", "Gibt es eine mildere oder wahrscheinlichere Erklärung für die Situation?"),
+    ("Alternative Sichtweise", "Formuliere jetzt einen ausgewogeneren, freundlicheren Gedanken, der deine Antworten oben berücksichtigt."),
+    ("Zusammenfassung", None),
+]
+
 FIVE_SENSES = [
     ("👀 Sehen", "Nenne 5 Dinge, die du gerade siehst."),
     ("✋ Fühlen", "Nenne 4 Dinge, die du gerade körperlich spürst."),
@@ -1053,6 +1080,12 @@ def page_home():
             <p>Lebensrad, Werte-Klärung und wiederkehrendes Identitäts-Journaling.</p>
             <span class="feature-badge">Neu</span>
         </div>
+        <div class="feature-card">
+            <div class="feature-icon">🪞</div>
+            <h3>Innerer Kritiker</h3>
+            <p>Einen selbstkritischen Gedanken in 5 Schritten hinterfragen und umformulieren.</p>
+            <span class="feature-badge">Neu</span>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1063,7 +1096,9 @@ def page_home():
     with col5:
         if st.button("Werte-Kompass öffnen →"):
             go("wk_home")
-    # col6 bleibt leer – hält die Ausrichtung zur 3-spaltigen feature-grid oben
+    with col6:
+        if st.button("Inneren Kritiker hinterfragen →"):
+            go("rf_flow")
 
     st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
     st.markdown("""
@@ -1874,6 +1909,59 @@ def page_werte_kompass():
         go("home")
 
 
+# ── INNERER KRITIKER (Reframing) ─────────────────────────────────────────────
+
+def page_rf_flow():
+    step_idx = st.session_state.rf_step
+    total = len(REFRAME_STEPS)
+
+    st.markdown("## 🪞 Innerer Kritiker")
+    render_stepper(step_idx + 1, total)
+
+    if step_idx == 0:
+        st.markdown("""
+        <div class="vb-card-warm">
+            <p style="margin:0">Eine kurze Übung, um einen selbstkritischen Gedanken zu hinterfragen –
+            keine Diagnose und kein Ersatz für Therapie, einfach ein Werkzeug zum Innehalten.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    label, prompt = REFRAME_STEPS[step_idx]
+    answers = st.session_state.rf_answers
+
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    if prompt is not None:
+        st.markdown(f"### {label}")
+        answers[label] = st.text_area(
+            prompt, value=answers.get(label, ""), height=140, key=f"rf_{label}")
+    else:
+        st.markdown("### 📋 Deine Reflexion im Überblick")
+        for lbl, _ in REFRAME_STEPS[:-1]:
+            st.markdown(f"**{lbl}**")
+            st.write(answers.get(lbl) or "–")
+        st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
+        st.markdown(
+            "Du kannst diese Übung jederzeit erneut machen, wenn sich der innere "
+            "Kritiker wieder meldet."
+        )
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    c1, c2 = st.columns([1, 3])
+    with c1:
+        if step_idx > 0:
+            if st.button("← Zurück", key="rf_prev"):
+                st.session_state.rf_step -= 1
+                st.rerun()
+    with c2:
+        if step_idx < total - 1:
+            if st.button("Weiter →", key="rf_next"):
+                st.session_state.rf_step += 1
+                st.rerun()
+        else:
+            if st.button("Neue Übung starten", key="rf_restart"):
+                reset_rf()
+
+
 # ── KRISENKOMPASS (SOS) ───────────────────────────────────────────────────────
 
 def page_sos():
@@ -1902,6 +1990,35 @@ def page_sos():
     st.markdown("Geh die Sinne der Reihe nach durch – das holt dich ins Hier und Jetzt.")
     for label, prompt in FIVE_SENSES:
         st.text_input(f"{label}: {prompt}", key=f"sos_{label}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    st.markdown("### 📝 Mein persönliches Merkblatt")
+    st.markdown(
+        "Kein Behandlungsplan, sondern eine eigene Gedächtnisstütze für Momente, "
+        "in denen es dir nicht gut geht. Bewahre sie dort auf, wo du sie im Ernstfall "
+        "leicht findest – ausgedruckt oder als Foto auf dem Handy."
+    )
+    st.session_state.kp_warnzeichen = st.text_area(
+        "Meine Warnzeichen – woran merke ich, dass es mir schlechter geht?",
+        value=st.session_state.kp_warnzeichen, height=100, key="kp_warn_ta")
+    st.session_state.kp_hilft = st.text_area(
+        "Was mir dann hilft – kleine Dinge, die ich selbst tun kann",
+        value=st.session_state.kp_hilft, height=100, key="kp_hilft_ta")
+    st.session_state.kp_kontakte = st.text_area(
+        "Wen ich anrufen kann – Namen und Telefonnummern",
+        value=st.session_state.kp_kontakte, height=100, key="kp_kontakte_ta")
+
+    plan_text = (
+        "MEIN PERSÖNLICHES NOTFALL-MERKBLATT\n"
+        "(kein Behandlungsplan – meine eigene Gedächtnisstütze)\n\n"
+        f"Meine Warnzeichen:\n{st.session_state.kp_warnzeichen or '-'}\n\n"
+        f"Was mir dann hilft:\n{st.session_state.kp_hilft or '-'}\n\n"
+        f"Wen ich anrufen kann:\n{st.session_state.kp_kontakte or '-'}\n"
+    )
+    st.download_button(
+        "Als Merkblatt herunterladen (zum Ausdrucken)", data=plan_text,
+        file_name="mein_notfall_merkblatt.txt", mime="text/plain", key="kp_download")
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="vb-card">', unsafe_allow_html=True)
@@ -1940,6 +2057,7 @@ PAGE_MAP = {
     "lu_intro":   page_lu_intro,
     "lu_flow":    page_lu_flow,
     "wk_home":    page_werte_kompass,
+    "rf_flow":    page_rf_flow,
     "sos":        page_sos,
 }
 
