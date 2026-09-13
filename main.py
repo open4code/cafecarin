@@ -388,6 +388,10 @@ DEFAULTS = dict(
     # ── Innerer Kritiker (Reframing) ──
     rf_step=0,               # aktueller Schritt in REFRAME_STEPS
     rf_answers={},           # schritt_label -> antworttext
+
+    # ── Aktivitäten-Inspiration (Krisenkompass) ──
+    ai_energy="mittel",      # gewähltes Energie-Level: niedrig / mittel / hoch
+    ai_current=None,         # aktuell angezeigte Idee (Text)
 )
 
 for k, v in DEFAULTS.items():
@@ -912,6 +916,45 @@ FIVE_SENSES = [
     ("👂 Hören", "Nenne 3 Geräusche, die du gerade hörst."),
     ("👃 Riechen", "Nenne 2 Dinge, die du riechen kannst."),
     ("👅 Schmecken", "Nenne 1 Sache, die du schmecken kannst."),
+]
+
+# Aktivitäten-Inspiration – für Momente, in denen man selbst nicht mehr weiß,
+# was einem guttut. Nach Energie-Level sortiert, damit z. B. in Krisen keine
+# überfordernden Vorschläge ("10 km joggen") kommen.
+ACTIVITY_IDEAS = [
+    # niedrig – kaum Energie nötig
+    {"text": "Eine Kerze anzünden und ein paar Minuten dem Licht zusehen.", "energy": "niedrig"},
+    {"text": "Eine Tasse Tee oder Kakao machen und ihn ganz bewusst, in kleinen Schlucken, trinken.", "energy": "niedrig"},
+    {"text": "Dich in eine warme Decke wickeln und 5 Minuten einfach nur daliegen.", "energy": "niedrig"},
+    {"text": "Ein Fenster öffnen und einmal tief die Luft von draußen einatmen.", "energy": "niedrig"},
+    {"text": "Ein altes Foto ansehen, das eine schöne Erinnerung weckt.", "energy": "niedrig"},
+    {"text": "Dir die Hände oder Arme mit einer Creme eincremen – ganz langsam, achtsam.", "energy": "niedrig"},
+    {"text": "Ein Lieblingslied auflegen und einfach nur zuhören, ohne etwas anderes zu tun.", "energy": "niedrig"},
+    {"text": "Drei Dinge aufschreiben, die heute – und sei es noch so klein – okay waren.", "energy": "niedrig"},
+    {"text": "Eine kuschelige Position auf dem Sofa oder Bett suchen und ein Hörbuch/Podcast laufen lassen.", "energy": "niedrig"},
+    {"text": "Ein Kuscheltier, Kissen oder einen weichen Gegenstand einfach mal festhalten.", "energy": "niedrig"},
+    # mittel
+    {"text": "10 Minuten spazieren gehen, ohne Ziel, einfach der Nase nach.", "energy": "mittel"},
+    {"text": "Jemandem, an den du gerade denkt, eine kurze Nachricht schreiben, nur um Hallo zu sagen.", "energy": "mittel"},
+    {"text": "Ein paar Lieder hören und dabei mitsingen oder mitwippen.", "energy": "mittel"},
+    {"text": "Etwas Kleines kochen oder backen, auf das du Lust hast.", "energy": "mittel"},
+    {"text": "5 Minuten aufräumen – nur eine Schublade oder eine Ecke, mehr nicht.", "energy": "mittel"},
+    {"text": "Draußen auf einer Bank sitzen und die Menschen oder die Natur beobachten.", "energy": "mittel"},
+    {"text": "Ein paar Skizzen oder Kritzeleien machen, ganz ohne Anspruch an das Ergebnis.", "energy": "mittel"},
+    {"text": "Eine warme Dusche nehmen und dich dabei ganz auf das Wasser konzentrieren.", "energy": "mittel"},
+    {"text": "Ein Spiel spielen, das du als Kind gemocht hast (auch digital).", "energy": "mittel"},
+    {"text": "Pflanzen gießen oder umtopfen, deine eigenen oder die von jemand anderem.", "energy": "mittel"},
+    # hoch
+    {"text": "Eine neue Strecke laufen, joggen oder Rad fahren, die du noch nicht kennst.", "energy": "hoch"},
+    {"text": "Ein Zimmer umräumen oder neu gestalten.", "energy": "hoch"},
+    {"text": "Schwimmen gehen oder eine andere Sportart ausprobieren, auf die du Lust hast.", "energy": "hoch"},
+    {"text": "Eine längere Wanderung oder Radtour in die Natur planen und losgehen.", "energy": "hoch"},
+    {"text": "Freund:innen spontan zu einem Treffen einladen.", "energy": "hoch"},
+    {"text": "Ein kreatives Projekt anfangen, das du schon lange vor dir herschiebst.", "energy": "hoch"},
+    {"text": "Tanzen – allein in deinem Zimmer, so laut und ausgelassen wie du magst.", "energy": "hoch"},
+    {"text": "Etwas Neues lernen: ein Rezept, ein Instrument, eine Sprache – 20 Minuten ausprobieren.", "energy": "hoch"},
+    {"text": "Einen Ort besuchen, an dem du lange nicht mehr warst.", "energy": "hoch"},
+    {"text": "Ein kleines Abenteuer für heute oder morgen planen – auch wenn es nur eine neue Bäckerei ist.", "energy": "hoch"},
 ]
 
 
@@ -2076,6 +2119,32 @@ def page_sos():
     st.markdown("Geh die Sinne der Reihe nach durch – das holt dich ins Hier und Jetzt.")
     for label, prompt in FIVE_SENSES:
         st.text_input(f"{label}: {prompt}", key=f"sos_{label}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="vb-card">', unsafe_allow_html=True)
+    st.markdown("### 💡 Aktivitäten-Inspiration")
+    st.markdown(
+        "In schwierigen Phasen weiß man oft selbst nicht mehr, was einem eigentlich "
+        "guttut oder Spaß macht. Wähle, wie viel Energie du gerade hast – und lass dir eine Idee zeigen."
+    )
+    energy_levels = ["niedrig", "mittel", "hoch"]
+    energy = st.radio(
+        "Wie viel Energie hast du gerade?", energy_levels,
+        index=energy_levels.index(st.session_state.ai_energy),
+        key="ai_energy_radio", horizontal=True)
+    st.session_state.ai_energy = energy
+
+    if st.button("💡 Idee zeigen", key="ai_show"):
+        candidates = [a["text"] for a in ACTIVITY_IDEAS if a["energy"] == energy]
+        others = [t for t in candidates if t != st.session_state.ai_current]
+        st.session_state.ai_current = random.choice(others or candidates)
+
+    if st.session_state.ai_current:
+        st.markdown(f"""
+        <div class="vb-card-warm" style="margin-top:0.8rem">
+            <p style="margin:0;font-size:1.03rem">✨ {st.session_state.ai_current}</p>
+        </div>
+        """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="vb-card">', unsafe_allow_html=True)
