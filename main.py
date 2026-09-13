@@ -800,6 +800,50 @@ TRANSITIONS = {
             ("Zusammenfassung", None),
         ],
     },
+    "Elternschaft": {
+        "icon": "👶",
+        "steps": [
+            ("Situation", "Was hat sich durch die Elternschaft bereits verändert, und was steht dir noch bevor?"),
+            ("Gefühle", "Was fühlst du gerade – Freude, Erschöpfung, Überforderung, ein Mix aus allem?"),
+            ("Gedanken", "Welche Erwartungen (eigene oder fremde) spürst du gerade am stärksten?"),
+            ("Ressourcen", "Wer oder was unterstützt dich in dieser Phase?"),
+            ("Nächste Schritte", "Was würde dir diese Woche etwas Entlastung verschaffen?"),
+            ("Zusammenfassung", None),
+        ],
+    },
+    "Pflege eines Angehörigen": {
+        "icon": "🩺",
+        "steps": [
+            ("Situation", "Was hat sich durch die Erkrankung deines Angehörigen in deinem Alltag verändert?"),
+            ("Gefühle", "Welche Gefühle kommen hoch – Sorge, Erschöpfung, Schuldgefühle, Liebe?"),
+            ("Gedanken", "Welche Gedanken oder Befürchtungen beschäftigen dich am meisten?"),
+            ("Ressourcen", "Wer oder was entlastet dich, und sei es nur für kurze Zeit?"),
+            ("Nächste Schritte", "Was wäre ein kleiner Schritt, um auch für dich selbst zu sorgen?"),
+            ("Zusammenfassung", None),
+        ],
+    },
+    "Ruhestand": {
+        "icon": "🌇",
+        "steps": [
+            ("Situation", "Was verändert sich durch den Ruhestand in deinem Alltag und deiner Rolle?"),
+            ("Gefühle", "Was löst der Übergang in dir aus – Erleichterung, Leere, Vorfreude?"),
+            ("Gedanken", "Was befürchtest du zu verlieren – Struktur, Sinn, Kontakte – und was erhoffst du dir?"),
+            ("Ressourcen", "Was hat dir bei früheren großen Veränderungen geholfen?"),
+            ("Nächste Schritte", "Was könnte deinem Alltag jetzt neue Struktur oder Sinn geben?"),
+            ("Zusammenfassung", None),
+        ],
+    },
+    "Auslandsumzug": {
+        "icon": "✈️",
+        "steps": [
+            ("Situation", "Wohin gehst du, und was lässt du dabei zurück?"),
+            ("Gefühle", "Was überwiegt gerade – Aufregung, Angst, Heimweh im Voraus?"),
+            ("Gedanken", "Was befürchtest du zu verlieren, und was erhoffst du dir vom neuen Ort?"),
+            ("Ressourcen", "Was oder wer hat dir bei früheren Veränderungen Halt gegeben?"),
+            ("Nächste Schritte", "Was würde dir helfen, dort schneller anzukommen?"),
+            ("Zusammenfassung", None),
+        ],
+    },
 }
 
 # Werte-Kompass – Lebensrad, Werte-Klärung, Identitäts-Journaling
@@ -807,6 +851,20 @@ LIFE_DOMAINS = [
     "Beruf/Karriere", "Beziehungen", "Gesundheit", "Finanzen",
     "Pers. Wachstum", "Freizeit/Erholung", "Familie", "Sinn/Spiritualität",
 ]
+
+# Verknüpfung Lebensrad → Training: welcher Resilienzfaktor (aus CHALLENGES)
+# passt am besten zu einem schwach bewerteten Lebensbereich. Nur Faktoren, für
+# die es tatsächlich Challenges gibt (siehe CHALLENGES weiter unten).
+DOMAIN_TO_FACTOR = {
+    "Beruf/Karriere":     "selfefficacy",
+    "Beziehungen":        "social",
+    "Gesundheit":         "coping",
+    "Finanzen":           "hope",
+    "Pers. Wachstum":     "coherence",
+    "Freizeit/Erholung":  "posemotions",
+    "Familie":            "social",
+    "Sinn/Spiritualität": "optimism",
+}
 
 VALUES_POOL = [
     "Freiheit", "Sicherheit", "Kreativität", "Familie", "Gesundheit",
@@ -1860,6 +1918,34 @@ def page_werte_kompass():
         unsafe_allow_html=True,
     )
     st.markdown('</div>', unsafe_allow_html=True)
+
+    # ── Verknüpfung zum Training: passende Challenge für den schwächsten Bereich ──
+    rec_factor = DOMAIN_TO_FACTOR.get(lowest)
+    rec_candidates = [c for c in CHALLENGES if c["factor"] == rec_factor]
+    if rec_candidates:
+        done_today = st.session_state.tr_completed_today
+        rec = next((c for c in rec_candidates if c["id"] not in done_today), None)
+        st.markdown('<div class="vb-card-sage">', unsafe_allow_html=True)
+        if rec:
+            factor_name = next((f["name"] for f in RC_FACTORS if f["key"] == rec_factor), rec_factor)
+            st.markdown(f"### 🎯 Passend zu „{lowest}“")
+            st.markdown(f"""
+            <div class="challenge-card" style="margin-bottom:0.8rem">
+                <span class="challenge-tag">{factor_name}</span>
+                <div class="challenge-title">{rec['title']}</div>
+                <div class="challenge-desc">{rec['desc']}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button(f"✓ Direkt abschließen – {rec['title']}", key=f"wk_rec_{rec['id']}"):
+                complete_challenge(rec["id"], rec["factor"])
+            if st.button("Alle Challenges ansehen →", key="wk_rec_all"):
+                go("training")
+        else:
+            st.markdown(
+                f"### 🎯 Passend zu „{lowest}“\n"
+                "Du hast die passenden Challenges für diesen Bereich heute schon abgeschlossen – stark!"
+            )
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # ── Werte-Klärung ──
     st.markdown('<div class="vb-card">', unsafe_allow_html=True)
