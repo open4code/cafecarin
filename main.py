@@ -1005,7 +1005,7 @@ def page_home():
     </div>
     """, unsafe_allow_html=True)
 
-       st.markdown(""
+st.markdown("""
     <div class="feature-grid">
         <div class="feature-card">
             <div class="feature-icon">🧠</div>
@@ -1063,6 +1063,7 @@ def page_home():
     with col5:
         if st.button("Werte-Kompass öffnen →"):
             go("wk_home")
+            
     # col6 bleibt leer – hält die Ausrichtung zur 3-spaltigen feature-grid oben
     st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
     st.markdown("""
