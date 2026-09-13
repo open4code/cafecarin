@@ -1005,7 +1005,7 @@ def page_home():
     </div>
     """, unsafe_allow_html=True)
 
-st.markdown("""
+    st.markdown("""
     <div class="feature-grid">
         <div class="feature-card">
             <div class="feature-icon">🧠</div>
@@ -1063,8 +1063,8 @@ st.markdown("""
     with col5:
         if st.button("Werte-Kompass öffnen →"):
             go("wk_home")
-            
     # col6 bleibt leer – hält die Ausrichtung zur 3-spaltigen feature-grid oben
+
     st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
     st.markdown("""
     <div class="vb-card-warm">
@@ -1092,7 +1092,7 @@ st.markdown("""
     st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
     st.markdown("""
     <div class="vb-card-warm">
-        <h3 style="margin:0 0 0.3rem">✨ Wellity Pro & B2B</h3>
+        <h3 style="margin:0 0 0.3rem">✨ VitaBoost Pro & B2B</h3>
         <p style="margin:0">KI-Analyse · Exportierbare Berichte · Teamdashboard für HR · Coaching-Integration</p>
     </div>
     """, unsafe_allow_html=True)
@@ -1626,7 +1626,7 @@ def page_training():
         st.markdown("""
         <div class="vb-card" style="border:2px dashed #C8963E;background:var(--gold-lt) !important;">
             <span class="pro-lock">🔒 PRO</span>
-            <h3 style="margin:0.5rem 0 0.3rem">Mehr mit Wellity Pro</h3>
+            <h3 style="margin:0.5rem 0 0.3rem">Mehr mit VitaBoost Pro</h3>
             <p style="margin:0">Detaillierter Fortschrittsbericht · Wöchentliche Coach-Sessions ·
             Team-Dashboard für HR · Exportierbare PDF-Berichte</p>
         </div>
@@ -1704,9 +1704,9 @@ def page_pricing():
     st.markdown('<hr class="vb-divider">', unsafe_allow_html=True)
     st.markdown("""
     <div class="vb-card-warm">
-        <h3 style="margin:0 0 0.5rem">💼 Warum Wellity für Unternehmen?</h3>
+        <h3 style="margin:0 0 0.5rem">💼 Warum VitaBoost für Unternehmen?</h3>
         <p>Burnout kostet Unternehmen durchschnittlich <strong>9.000 € pro betroffener Person</strong> (Fehlzeiten, Produktivität, Fluktuation).
-        Wellity hilft Mitarbeiter·innen, ihre Resilienz proaktiv zu stärken –
+        VitaBoost hilft Mitarbeiter·innen, ihre Resilienz proaktiv zu stärken –
         messbar, datenschutzkonform und skalierbar.</p>
         <p style="margin:0"><strong>ROI-Beispiel:</strong> Bei 50 Mitarbeiter·innen und 15 % Burnout-Reduktion → <em>~67.500 € Ersparnis/Jahr</em>.</p>
     </div>
